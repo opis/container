@@ -64,7 +64,7 @@ class Container
 		
 		foreach($parameters as $parameter)
 		{
-			if(null === $class = $parameter->getClass()->name)
+			if(null === $class = $parameter->getClass())
 			{
 				if($parameter->isDefaultValueAvailable())
 				{
@@ -77,6 +77,7 @@ class Container
 			}
 			else
 			{
+				$class = $class->name;
 				try
 				{
 					$arguments[] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
