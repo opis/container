@@ -20,7 +20,7 @@
 
 namespace Opis\Container;
 
-class BindingException extends RuntimeException
+class BindingException extends \RuntimeException
 {
 	
 }
