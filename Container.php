@@ -30,6 +30,8 @@ class Container
     protected $bindings  = array();
 	
 	protected $instances = array();
+	
+	protected static $containerInstance;
     
     protected function build($concrete, array $arguments = array())
     {
@@ -121,7 +123,7 @@ class Container
 		return $this->bindings[$abstract];
     }
 	
-	public function __invoke($abstract, array $arguments = array())
+	public function make($abstract, array $arguments = array())
 	{
 		if(isset($this->instances[$abstract]))
 		{
@@ -148,6 +150,11 @@ class Container
 		}
 		
 		return $instance;
+	}
+	
+	public function __invoke($abstract, array $arguments = array())
+	{
+		return $this->make($abstract, $arguments);
 	}
     
 }
