@@ -79,7 +79,7 @@ class Container
 			{
 				try
 				{
-					$arguments[] = isset($this->bindings[$class]) ? $this->get($class) : $this->build($class);
+					$arguments[] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
 				}
 				catch(BindingException $e)
 				{
