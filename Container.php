@@ -28,8 +28,8 @@ use InvalidArgumentException;
 class Container
 {
     protected $bindings  = array();
-    
-    protected $extenders = array();
+	
+	protected $instances = array();
     
     protected function build($concrete, array $arguments = array())
     {
@@ -104,21 +104,10 @@ class Container
             $concrete = $abstract;
         }
         
-        $this->bindings[$abstract] = array(
-            'concrete' => $concrete,
-            'shared' => $shared,
-            'instance' => null,
-        );
-    }
-    
-    public function extend($abstract, Closure $extender)
-    {
-        if(!isset($this->bindings[$abstract]))
-        {
-            throw new InvalidArgumentException("No bindings were found for {$abstract} type");
-        }
-        
-        $this->extenders[$abstract][] = $extender;
+        $this->bindings[$abstract] = new Dependency($concrete, $shared);
+		unset($this->instances[$abstract]);
+		
+		return $this->bindings[$abstract];
     }
     
     
@@ -129,43 +118,36 @@ class Container
             throw new InvalidArgumentException("No bindings were found for {$abstract} type");
         }
         
-        $binding = &$this->bindings[$abstract];
-        
-        
-        if($binding['shared'] === true)
-        {
-            if($binding['instance'] === null)
-            {
-                $binding['instance'] = $this->build($binding['concrete'], $arguments);
-            }
-            
-            $instance = $binding['instance'];
-        }
-        else
-        {
-            $instance = $this->build($binding['concrete'], $arguments);
-        }
-        
-        if(isset($this->extenders[$abstract]))
-        {
-            foreach($this->extenders[$abstract] as $extender)
-            {
-                $instance = $extender($instance, $this);
-            }
-        }
+		return $this->bindings[$abstract];
+    }
+	
+	public function __invoke($abstract, array $arguments = array())
+	{
+		if(isset($this->instances[$abstract]))
+		{
+			return $this->instances[$abstract];
+		}
+		
+		$dependency = $this->get($abstract);
+		
+		$instance = $this->build($dependency->getConcrete(), $arguments);
+		
+		foreach($dependency->getExtenders() as $extender)
+		{
+			$extender($instance, $this);
+		}
 		
 		if($instance instanceof ContainerAwareInterface)
 		{
 			$instance->setContainer($this);
 		}
-        
-        return $instance;
-        
-    }
-	
-	public function __invoke($abstract, array $arguements = array())
-	{
-		return $this->get($abstract, $arguements);
+		
+		if($dependency->isShared())
+		{
+			$this->instances[$abstract] = $instance;
+		}
+		
+		return $instance;
 	}
     
 }
