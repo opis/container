@@ -119,7 +119,7 @@ class Container
 	{
 		if(!isset($this->bindings[$abstract]))
 		{
-			throw new InvalidArgumentException("No bindings were found for {$abstract} type");
+			$this->bind($abstract, null);
 		}
 		
 		return $this->bindings[$abstract];
