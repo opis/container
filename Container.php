@@ -31,6 +31,8 @@ class Container
 	
 	protected $instances = array();
 	
+	protected $extenders = array();
+	
 	protected function build($concrete, array $arguments = array())
 	{
 		if($concrete instanceof Closure)
@@ -62,7 +64,7 @@ class Container
 		
 		foreach($parameters as $parameter)
 		{
-			if(null === $class = $parameter->getClass())
+			if(null === $class = $parameter->getClass()->name)
 			{
 				if($parameter->isDefaultValueAvailable())
 				{
@@ -122,6 +124,16 @@ class Container
 		return $this->bindings[$abstract];
 	}
 	
+	public function extend($abstract, Closure $extender)
+	{
+		if(!isset($this->bindings[$abstract]))
+		{
+			throw new InvalidArgumentException("No bindings were found for {$abstract} type");
+		}
+		
+		$this->extenders[$abstract][] = $extender;
+	}
+	
 	public function make($abstract, array $arguments = array())
 	{
 		if(isset($this->instances[$abstract]))
@@ -133,14 +145,27 @@ class Container
 		
 		$instance = $this->build($dependency->getConcrete(), $arguments);
 		
-		foreach($dependency->getExtenders() as $extender)
+		foreach($dependency->getSetters() as $setter)
 		{
-			$extender($instance, $this);
+			$setter($instance, $this);
 		}
 		
 		if($instance instanceof ContainerAwareInterface)
 		{
 			$instance->setContainer($this);
+		}
+		
+		if(isset($this->extenders[$abstract]))
+		{
+			foreach($this->extenders[$abstract] as $extender)
+			{
+				$instance = $extender($instance, $this);
+			}
+			
+			if($instance instanceof ContainerAwareInterface)
+			{
+				$instance->setContainer($this);
+			}
 		}
 		
 		if($dependency->isShared())

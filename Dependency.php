@@ -29,7 +29,7 @@ class Dependency
     
     protected $shared;
     
-    protected $extenders = array();
+    protected $setters = array();
     
     public function __construct($concrete, $shared = false)
     {
@@ -47,14 +47,14 @@ class Dependency
         return $this->shared;
     }
     
-    public function getExtenders()
+    public function getSetters()
     {
-        return $this->extenders;
+        return $this->setters;
     }
     
-    public function extend(Closure $extender)
+    public function setter(Closure $setter)
     {
-        $this->extenders[] = $extender;
+        $this->setters[] = $setter;
         return $this;
     }
     
