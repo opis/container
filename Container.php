@@ -27,101 +27,100 @@ use InvalidArgumentException;
 
 class Container
 {
-    protected $bindings  = array();
+	protected $bindings  = array();
 	
 	protected $instances = array();
 	
-	protected static $containerInstance;
-    
-    protected function build($concrete, array $arguments = array())
-    {
-        if($concrete instanceof Closure)
-        {
-            return $concrete($this, $arguments);
-        }
-        
-        $reflection = new ReflectionClass($concrete);
-        
-        if(!$reflection->isInstantiable())
-        {
-            throw new BindingException($concrete . ' is not instantiable');
-        }
-        
-        $constructor = $reflection->getConstructor();
-        
-        if(is_null($constructor))
-        {
-            return new $concrete();
-        }
-        
-        return $reflection->newInstanceArgs($this->resolveConstructor($constructor, $arguments));
-        
-    }
-    
-    protected function resolveConstructor($constructor, array $arguments)
-    {
-        
-        $parameters = array_diff_key($constructor->getParameters(), $arguments);
-        
-        foreach($parameters as $parameter)
-        {
-            if(null === $class = $parameter->getClass())
-            {
-                if($parameter->isDefaultValueAvailable())
-                {
-                    $arguments[] = $parameter->getDefaultValue();
-                }
-                else
-                {
-                    throw new BindingException("Could not resolve [$parameter]");
-                }
-            }
-            else
-            {
-                try
-                {
-                    $arguments[] = isset($this->bindings[$class]) ? $this->get($class) : $this->build($class);
-                }
-                catch(BindingException $e)
-                {
-                    if($parameter->isOptional())
-                    {
-                        $arguments[] = $parameter->getDefaultValue();
-                    }
-                    else
-                    {
-                        throw $e;
-                    }
-                }
-            }
-        }
-        
-        return $arguments;
-    }
-    
-    public function bind($abstract, $concrete = null, $shared = false)
-    {
-        if(is_null($concrete))
-        {
-            $concrete = $abstract;
-        }
-        
-        $this->bindings[$abstract] = new Dependency($concrete, $shared);
+	protected function build($concrete, array $arguments = array())
+	{
+		if($concrete instanceof Closure)
+		{
+			return $concrete($this, $arguments);
+		}
+		
+		$reflection = new ReflectionClass($concrete);
+		
+		if(!$reflection->isInstantiable())
+		{
+			throw new BindingException($concrete . ' is not instantiable');
+		}
+		
+		$constructor = $reflection->getConstructor();
+		
+		if(is_null($constructor))
+		{
+			return new $concrete();
+		}
+		
+		return $reflection->newInstanceArgs($this->resolveConstructor($constructor, $arguments));
+		
+	}
+	
+	protected function resolveConstructor($constructor, array $arguments)
+	{
+		$parameters = array_diff_key($constructor->getParameters(), $arguments);
+		
+		foreach($parameters as $parameter)
+		{
+			if(null === $class = $parameter->getClass())
+			{
+				if($parameter->isDefaultValueAvailable())
+				{
+					$arguments[] = $parameter->getDefaultValue();
+				}
+				else
+				{
+					throw new BindingException("Could not resolve [$parameter]");
+				}
+			}
+			else
+			{
+				try
+				{
+					$arguments[] = isset($this->bindings[$class]) ? $this->get($class) : $this->build($class);
+				}
+				catch(BindingException $e)
+				{
+					if($parameter->isOptional())
+					{
+						$arguments[] = $parameter->getDefaultValue();
+					}
+					else
+					{
+						throw $e;
+					}
+				}
+			}
+		}
+		
+		return $arguments;
+	}
+	
+	public function bind($abstract, $concrete = null, $shared = false)
+	{
+		if(is_null($concrete))
+		{
+			$concrete = $abstract;
+		}
+		
+		$dependency = new Dependency($concrete, $shared);
+		
 		unset($this->instances[$abstract]);
+		$this->bindings[$abstract] = $dependency;
+		
+		return $dependency;
+	}
+	
+	
+	public function get($abstract, array $arguments = array())
+	{
+		if(!isset($this->bindings[$abstract]))
+		{
+			throw new InvalidArgumentException("No bindings were found for {$abstract} type");
+		}
 		
 		return $this->bindings[$abstract];
-    }
-    
-    
-    public function get($abstract, array $arguments = array())
-    {
-        if(!isset($this->bindings[$abstract]))
-        {
-            throw new InvalidArgumentException("No bindings were found for {$abstract} type");
-        }
-        
-		return $this->bindings[$abstract];
-    }
+	}
 	
 	public function make($abstract, array $arguments = array())
 	{
