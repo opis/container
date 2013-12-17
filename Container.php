@@ -162,13 +162,21 @@ class Container
 		{
 			foreach($this->extenders[$abstract] as $extender)
 			{
-				$instance = $extender($instance, $this);
+				$newinstance = $extender($instance, $this);
+				
+				if($newinstance === null || $newinstance === $instance)
+				{
+					continue;
+				}
+				
+				if($newinstance instanceof ContainerAwareInterface)
+				{
+					$newinstance->setContainer($this);
+				}
+				
+				$instance = $newinstance;
 			}
 			
-			if($instance instanceof ContainerAwareInterface)
-			{
-				$instance->setContainer($this);
-			}
 		}
 		
 		if($dependency->isShared())
