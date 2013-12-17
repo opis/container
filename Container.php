@@ -32,6 +32,7 @@ class Container
 	protected $instances = array();
 	
 	protected $extenders = array();
+
 	
 	protected function build($concrete, array $arguments = array())
 	{
@@ -98,6 +99,7 @@ class Container
 		
 		return $arguments;
 	}
+	
 	
 	public function bind($abstract, $concrete = null, $shared = false)
 	{
