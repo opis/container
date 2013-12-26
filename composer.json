@@ -16,7 +16,7 @@
     "autoload": {
         "psr-0": {"Opis\\Container\\": ""}
     },
-    "target-dir": "Opis/Colibri",
+    "target-dir": "Opis/Container",
     "config": {
         "preferred-install": "dist"
     },
