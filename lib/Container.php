@@ -20,23 +20,33 @@
 
 namespace Opis\Container;
 
-use Closure;
 use ReflectionClass;
 use RuntimeException;
 use InvalidArgumentException;
+use Serializable;
 
-class Container
+class BindingException extends \RuntimeException
+{
+	
+}
+
+class Container implements Serializable
 {
 	protected $bindings  = array();
 	
 	protected $instances = array();
 	
 	protected $extenders = array();
+	
 
+	protected function createDependency($concrete, $shared)
+	{
+		return new Dependency($concrete, $shared);
+	}
 	
 	protected function build($concrete, array $arguments = array())
 	{
-		if($concrete instanceof Closure)
+		if(is_callable($concrete))
 		{
 			return $concrete($this, $arguments);
 		}
@@ -108,7 +118,7 @@ class Container
 			$concrete = $abstract;
 		}
 		
-		$dependency = new Dependency($concrete, $shared);
+		$dependency = $this->createDependency($concrete, $shared);
 		
 		unset($this->instances[$abstract]);
 		$this->bindings[$abstract] = $dependency;
@@ -127,7 +137,7 @@ class Container
 		return $this->bindings[$abstract];
 	}
 	
-	public function extend($abstract, Closure $extender)
+	public function extend($abstract, callable $extender)
 	{
 		if(!isset($this->bindings[$abstract]))
 		{
@@ -190,6 +200,23 @@ class Container
 	public function __invoke($abstract, array $arguments = array())
 	{
 		return $this->make($abstract, $arguments);
+	}
+	
+	public function serialize()
+	{
+		return serialize(array(
+			'bindings' => $this->bindings,
+			'extenders' => $this->extenders,
+		));
+	}
+	
+	public function unserialize($data)
+	{
+		$object = unserialize($data);
+		foreach($object as $key => $value)
+		{
+			$this->{$key} = $value;
+		}
 	}
     
 }
