@@ -20,7 +20,9 @@
 
 namespace Opis\Container;
 
+use Closure;
 use Serializable;
+use Opis\Closure\SerializableClosure;
 
 class Dependency implements Serializable
 {
@@ -52,28 +54,38 @@ class Dependency implements Serializable
         return $this->setters;
     }
     
-    public function setter(callable $setter)
+    public function setter(Closure $setter)
     {
         $this->setters[] = $setter;
         return $this;
     }
     
     public function serialize()
-    {
+    {   
         return serialize(array(
-            'concrete' => $this->concrete,
+            'concrete' => ($this->concrete instanceof Closure)
+                        ? new SerializableClosure($this->concrete)
+                        : $this->concrete,
             'shared' => $this->shared,
-            'setters' => $this->setters,
+            'setters' => array_map(function($value){
+                return new SerializableClosure($value);
+            }, $this->setters),
         ));
     }
     
     public function unserialize($data)
     {
         $object = unserialize($data);
-        foreach($object as $key => $value)
-        {
-            $this->{$key} = $value;
-        }
+        
+        $this->concrete = ($object['concrete'] instanceof SerializableClosure)
+                        ? $object['concrete']->getClosure()
+                        : $object['concrete'];
+                        
+        $this->shared = $object['shared'];
+        
+        $this->setters = array_map(function($value){
+            return $value->getClosure();
+        }, $object['setters']);
     }
     
 }

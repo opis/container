@@ -20,10 +20,12 @@
 
 namespace Opis\Container;
 
+use Closure;
 use ReflectionClass;
 use RuntimeException;
 use InvalidArgumentException;
 use Serializable;
+use Opis\Closure\SerializableClosure;
 
 class BindingException extends \RuntimeException
 {
@@ -38,15 +40,10 @@ class Container implements Serializable
 	
 	protected $extenders = array();
 	
-
-	protected function createDependency($concrete, $shared)
-	{
-		return new Dependency($concrete, $shared);
-	}
 	
 	protected function build($concrete, array $arguments = array())
 	{
-		if(is_callable($concrete))
+		if($concrete instanceof Closure)
 		{
 			return $concrete($this, $arguments);
 		}
@@ -118,16 +115,22 @@ class Container implements Serializable
 			$concrete = $abstract;
 		}
 		
-		$dependency = $this->createDependency($concrete, $shared);
+		if(!is_string($concrete) && !($concrete instanceof Closure))
+		{
+			throw new InvalidArgumentException('$concrete must be a string or a closure');
+		}
+		
+		$dependency = new Dependency($concrete, $shared);
 		
 		unset($this->instances[$abstract]);
+		
 		$this->bindings[$abstract] = $dependency;
 		
 		return $dependency;
 	}
 	
 	
-	public function get($abstract, array $arguments = array())
+	public function get($abstract)
 	{
 		if(!isset($this->bindings[$abstract]))
 		{
@@ -137,7 +140,7 @@ class Container implements Serializable
 		return $this->bindings[$abstract];
 	}
 	
-	public function extend($abstract, callable $extender)
+	public function extend($abstract, Closure $extender)
 	{
 		if(!isset($this->bindings[$abstract]))
 		{
@@ -203,20 +206,23 @@ class Container implements Serializable
 	}
 	
 	public function serialize()
-	{
+	{	
 		return serialize(array(
 			'bindings' => $this->bindings,
-			'extenders' => $this->extenders,
+			'extenders' => array_map(function($value){
+				return new SerializableClosure($value);
+			}, $this->extenders),
 		));
 	}
 	
 	public function unserialize($data)
 	{
 		$object = unserialize($data);
-		foreach($object as $key => $value)
-		{
-			$this->{$key} = $value;
-		}
+		
+		$this->bindings = $object['bindings'];
+		$this->extenders = array_map(function($value){
+			return $value->getClosure();
+		}, $object['extenders']);
 	}
     
 }
