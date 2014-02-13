@@ -166,11 +166,6 @@ class Container implements Serializable
 			$setter($instance, $this);
 		}
 		
-		if($instance instanceof ContainerAwareInterface)
-		{
-			$instance->setContainer($this);
-		}
-		
 		if(isset($this->extenders[$abstract]))
 		{
 			foreach($this->extenders[$abstract] as $extender)
@@ -180,11 +175,6 @@ class Container implements Serializable
 				if($newinstance === null || $newinstance === $instance)
 				{
 					continue;
-				}
-				
-				if($newinstance instanceof ContainerAwareInterface)
-				{
-					$newinstance->setContainer($this);
 				}
 				
 				$instance = $newinstance;
