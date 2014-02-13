@@ -209,8 +209,10 @@ class Container implements Serializable
 	{	
 		return serialize(array(
 			'bindings' => $this->bindings,
-			'extenders' => array_map(function($value){
-				return new SerializableClosure($value);
+			'extenders' => array_map(function(&$value){
+				return array_map(function($closure){
+					return new SerializableClosure($closure);
+				},$value);
 			}, $this->extenders),
 		));
 	}
@@ -220,8 +222,10 @@ class Container implements Serializable
 		$object = unserialize($data);
 		
 		$this->bindings = $object['bindings'];
-		$this->extenders = array_map(function($value){
-			return $value->getClosure();
+		$this->extenders = array_map(function(&$value){
+			return array_map(function($wrapper){
+				return $wrapper->getClosure();
+			}, $value);
 		}, $object['extenders']);
 	}
     
