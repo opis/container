@@ -33,6 +33,8 @@ class Dependency implements Serializable
     
     protected $setters = array();
     
+    protected $extenders = array();
+    
     public function __construct($concrete, $shared = false)
     {
         $this->concrete = $concrete;
@@ -54,38 +56,56 @@ class Dependency implements Serializable
         return $this->setters;
     }
     
+    public function getExtenders()
+    {
+        return $this->extenders;
+    }
+    
     public function setter(Closure $setter)
     {
         $this->setters[] = $setter;
         return $this;
     }
     
+    public function extender(Closure $extender)
+    {
+        $this->extenders[] = $extender;
+        return $this;
+    }
+    
     public function serialize()
-    {   
-        return serialize(array(
-            'concrete' => ($this->concrete instanceof Closure)
-                        ? new SerializableClosure($this->concrete)
+    {
+        $map = function($value) { return SerializableClosure::from($value); };
+        
+        SerializableClosure::enterContext();
+        
+        $object = array(
+            'concrete' => $this->concrete instanceof Closure
+                        ? SerializableClosure::from($this->concrete)
                         : $this->concrete,
             'shared' => $this->shared,
-            'setters' => array_map(function($value){
-                return new SerializableClosure($value);
-            }, $this->setters),
-        ));
+            'setters' => array_map($map, $this->setters),
+            'extenders' => array_map($map, $this->extenders),
+        );
+        
+        SerializableClosure::exitContext();
+        
+        return serialize($object);
     }
     
     public function unserialize($data)
     {
         $object = unserialize($data);
         
+        $map = function($value) { return $value->getClosure(); };
+        
         $this->concrete = ($object['concrete'] instanceof SerializableClosure)
                         ? $object['concrete']->getClosure()
                         : $object['concrete'];
                         
         $this->shared = $object['shared'];
-        
-        $this->setters = array_map(function($value){
-            return $value->getClosure();
-        }, $object['setters']);
+        $this->setters = array_map($map, $object['setters']);
+        $this->extenders = array_map($map, $object['extenders']);
     }
     
 }

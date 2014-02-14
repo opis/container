@@ -38,8 +38,7 @@ class Container implements Serializable
 	
 	protected $instances = array();
 	
-	protected $extenders = array();
-	
+	protected $aliases = array();
 	
 	protected function build($concrete, array $arguments = array())
 	{
@@ -107,31 +106,25 @@ class Container implements Serializable
 		return $arguments;
 	}
 	
-	
-	public function bind($abstract, $concrete = null, $shared = false)
+	protected function get($abstract, array &$stack = array())
 	{
-		if(is_null($concrete))
+		if(isset($this->aliases[$abstract]))
 		{
-			$concrete = $abstract;
+			$alias = $this->aliases[$abstract];
+			
+			if(in_array($alias, $stack))
+			{
+				$stack[] = $alias;
+				$error = implode(' => ', $stack);
+				throw new RuntimeException("Circular reference detected: $error");
+			}
+			else
+			{
+				$stack[] = $alias;
+				return $this->get($alias, $stack);
+			}
 		}
 		
-		if(!is_string($concrete) && !($concrete instanceof Closure))
-		{
-			throw new InvalidArgumentException('$concrete must be a string or a closure');
-		}
-		
-		$dependency = new Dependency($concrete, $shared);
-		
-		unset($this->instances[$abstract]);
-		
-		$this->bindings[$abstract] = $dependency;
-		
-		return $dependency;
-	}
-	
-	
-	public function get($abstract)
-	{
 		if(!isset($this->bindings[$abstract]))
 		{
 			$this->bind($abstract, null);
@@ -140,14 +133,47 @@ class Container implements Serializable
 		return $this->bindings[$abstract];
 	}
 	
-	public function extend($abstract, Closure $extender)
+	public function singleton($abstract, $concrete = null)
 	{
-		if(!isset($this->bindings[$abstract]))
+		return $this->bind($abstract, $concrete, true);
+	}
+	
+	public function bind($abstract, $concrete = null, $shared = false)
+	{
+		if(is_null($concrete))
 		{
-			throw new InvalidArgumentException("No bindings were found for {$abstract} type");
+			$concrete = $abstract;
 		}
 		
-		$this->extenders[$abstract][] = $extender;
+		if(!is_string($abstract))
+		{
+			throw new InvalidArgumentException('$abstract must be a string');
+		}
+		elseif(!is_string($concrete) && !($concrete instanceof Closure))
+		{
+			throw new InvalidArgumentException('$concrete must be a string or a closure');
+		}
+		
+		$dependency = new Dependency($concrete, $shared);
+		
+		unset($this->instances[$abstract]);
+		unset($this->aliases[$abstract]);
+		
+		$this->bindings[$abstract] = $dependency;
+		
+		return $dependency;
+	}
+	
+	public function alias($concrete, $alias)
+	{
+		$this->aliases[$alias] = $concrete;
+		return $this;
+	}
+	
+	public function extend($abstract, Closure $extender)
+	{
+		$this->get($abstract)->extender($extender);
+		return $this;
 	}
 	
 	public function make($abstract, array $arguments = array())
@@ -166,20 +192,16 @@ class Container implements Serializable
 			$setter($instance, $this);
 		}
 		
-		if(isset($this->extenders[$abstract]))
+		foreach($dependency->getExtenders() as $extender)
 		{
-			foreach($this->extenders[$abstract] as $extender)
+			$newinstance = $extender($instance, $this);
+			
+			if($newinstance === null || $newinstance === $instance)
 			{
-				$newinstance = $extender($instance, $this);
-				
-				if($newinstance === null || $newinstance === $instance)
-				{
-					continue;
-				}
-				
-				$instance = $newinstance;
+				continue;
 			}
 			
+			$instance = $newinstance;
 		}
 		
 		if($dependency->isShared())
@@ -196,27 +218,24 @@ class Container implements Serializable
 	}
 	
 	public function serialize()
-	{	
-		return serialize(array(
+	{
+		SerializableClosure::enterContext();
+		
+		$object = array(
 			'bindings' => $this->bindings,
-			'extenders' => array_map(function(&$value){
-				return array_map(function($closure){
-					return new SerializableClosure($closure);
-				},$value);
-			}, $this->extenders),
-		));
+			'aliases' => $this->aliases,
+		);
+		
+		SerializableClosure::exitContext();
+		
+		return serialize($object);
 	}
 	
 	public function unserialize($data)
 	{
 		$object = unserialize($data);
-		
 		$this->bindings = $object['bindings'];
-		$this->extenders = array_map(function(&$value){
-			return array_map(function($wrapper){
-				return $wrapper->getClosure();
-			}, $value);
-		}, $object['extenders']);
+		$this->aliases = $object['aliases'];
 	}
     
 }
