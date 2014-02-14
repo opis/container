@@ -4,8 +4,21 @@ Opis Container
 [![Latest Unstable Version](https://poser.pugx.org/opis/container/v/unstable.png)](//packagist.org/packages/opis/container)
 [![License](https://poser.pugx.org/opis/container/license.png)](https://packagist.org/packages/opis/container)
 
-Serializable dependency injection container for PHP 5.3+
+Serializable dependency injection container
 -------------------
+
+
+###Installation
+
+This library is available on [Packagist](https://packagist.org/packages/opis/container) and can be installed using [Composer](http://getcomposer.org)
+
+```json
+{
+    "require": {
+        "opis/container": "2.0.*"
+    }
+}
+```
 
 ###Examples
 
