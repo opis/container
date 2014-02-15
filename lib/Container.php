@@ -221,14 +221,14 @@ class Container implements Serializable
 	{
 		SerializableClosure::enterContext();
 		
-		$object = array(
+		$object = serialize(array(
 			'bindings' => $this->bindings,
 			'aliases' => $this->aliases,
-		);
+		));
 		
 		SerializableClosure::exitContext();
 		
-		return serialize($object);
+		return $object;
 	}
 	
 	public function unserialize($data)

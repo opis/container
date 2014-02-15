@@ -79,18 +79,18 @@ class Dependency implements Serializable
         
         SerializableClosure::enterContext();
         
-        $object = array(
+        $object = serialize(array(
             'concrete' => $this->concrete instanceof Closure
                         ? SerializableClosure::from($this->concrete)
                         : $this->concrete,
             'shared' => $this->shared,
             'setters' => array_map($map, $this->setters),
             'extenders' => array_map($map, $this->extenders),
-        );
+        ));
         
         SerializableClosure::exitContext();
         
-        return serialize($object);
+        return $object;
     }
     
     public function unserialize($data)
