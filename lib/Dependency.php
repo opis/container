@@ -95,7 +95,7 @@ class Dependency implements Serializable
     
     public function unserialize($data)
     {
-        $object = unserialize($data);
+        $object = SerializableClosure::unserializeData($data);
         
         $map = function($value) { return $value->getClosure(); };
         

@@ -233,7 +233,7 @@ class Container implements Serializable
 	
 	public function unserialize($data)
 	{
-		$object = unserialize($data);
+		$object = SerializableClosure::unserializeData($data);
 		$this->bindings = $object['bindings'];
 		$this->aliases = $object['aliases'];
 	}
