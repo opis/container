@@ -24,31 +24,21 @@ use Closure;
 use Serializable;
 use Opis\Closure\SerializableClosure;
 
-class Dependency implements Serializable
+class Extender implements Serializable
 {
     
-    protected $concrete;
-    
-    protected $shared;
+    protected $callback;
     
     protected $setters = array();
     
-    protected $extenders = array();
-    
-    public function __construct($concrete, $shared = false)
+    public function __construct(Closure $callback)
     {
-        $this->concrete = $concrete;
-        $this->shared = $shared;
+        $this->callback = $callback;
     }
     
-    public function getConcrete()
+    public function getCallback()
     {
-        return $this->concrete;
-    }
-    
-    public function isShared()
-    {
-        return $this->shared;
+        return $this->callback;
     }
     
     public function getSetters()
@@ -56,22 +46,10 @@ class Dependency implements Serializable
         return $this->setters;
     }
     
-    public function getExtenders()
-    {
-        return $this->extenders;
-    }
-    
     public function setter(Closure $setter)
     {
         $this->setters[] = $setter;
         return $this;
-    }
-    
-    public function extender(Closure $callback)
-    {
-        $extender = new Extender($callback);
-        $this->extenders[] = $extender;
-        return $extender;
     }
     
     public function serialize()
@@ -81,12 +59,8 @@ class Dependency implements Serializable
         SerializableClosure::enterContext();
         
         $object = serialize(array(
-            'concrete' => $this->concrete instanceof Closure
-                        ? SerializableClosure::from($this->concrete)
-                        : $this->concrete,
-            'shared' => $this->shared,
+            'callback' => SerializableClosure::from($this->callback),
             'setters' => array_map($map, $this->setters),
-            'extenders' => $this->extenders,
         ));
         
         SerializableClosure::exitContext();
@@ -100,12 +74,7 @@ class Dependency implements Serializable
         
         $map = function($value) { return $value->getClosure(); };
         
-        $this->concrete = ($object['concrete'] instanceof SerializableClosure)
-                        ? $object['concrete']->getClosure()
-                        : $object['concrete'];
-                        
-        $this->shared = $object['shared'];
-        $this->extenders = $object['extenders'];
+        $this->callback = $object['callback']->getClosure();
         $this->setters = array_map($map, $object['setters']);
     }
     

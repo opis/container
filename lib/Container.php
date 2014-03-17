@@ -172,8 +172,7 @@ class Container implements Serializable
 	
 	public function extend($abstract, Closure $extender)
 	{
-		$this->get($abstract)->extender($extender);
-		return $this;
+		return $this->get($abstract)->extender($extender);
 	}
 	
 	public function make($abstract, array $arguments = array())
@@ -194,11 +193,18 @@ class Container implements Serializable
 		
 		foreach($dependency->getExtenders() as $extender)
 		{
-			$newinstance = $extender($instance, $this);
+			$callback = $extender->getCallback();
+			
+			$newinstance = $callback($instance, $this);
 			
 			if($newinstance === null || $newinstance === $instance)
 			{
 				continue;
+			}
+			
+			foreach($extender->getSetters() as $setter)
+			{
+				$setter($newinstance, $this);
 			}
 			
 			$instance = $newinstance;
