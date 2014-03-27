@@ -15,7 +15,7 @@ This library is available on [Packagist](https://packagist.org/packages/opis/con
 ```json
 {
     "require": {
-        "opis/container": "2.0.*"
+        "opis/container": "2.1.*"
     }
 }
 ```
