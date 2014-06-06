@@ -24,16 +24,32 @@ use Closure;
 use Serializable;
 use Opis\Closure\SerializableClosure;
 
+/**
+ * This class holds informations about a concrete type
+ */
+
 class Dependency implements Serializable
 {
-    
+    /** @var    string  $concrete   Concrete type name. */
     protected $concrete;
     
+    /** @var    boolean $shared     A flag that indicates if this type will be build as a singleton(shared). */
     protected $shared;
     
+    /** @var    array   $setters    An array of callbacks */
     protected $setters = array();
     
+    /** @var    array   $extenders  An array of extenders. */
     protected $extenders = array();
+    
+    /**
+     * Constructor
+     *
+     * @access public
+     *
+     * @param   string  $concrete   Concrete class name
+     * @param   boolean $shared     Shared flag
+     */
     
     public function __construct($concrete, $shared = false)
     {
@@ -41,25 +57,69 @@ class Dependency implements Serializable
         $this->shared = $shared;
     }
     
+    /**
+     * Returns the concrete class name
+     *
+     * @access  public
+     * 
+     * @return  string
+     */
+    
     public function getConcrete()
     {
         return $this->concrete;
     }
+    
+    /**
+     * Returns TRUE if this concrete type is shared or FALSE otherwise
+     *
+     * @access  public
+     * 
+     * @return  boolean
+     */
     
     public function isShared()
     {
         return $this->shared;
     }
     
+    /**
+     * Returns an array of setters that will be invoked after an instance
+     * of the concrete class will be instanciated
+     *
+     * @access  public
+     * 
+     * @return  array
+     */
+    
     public function getSetters()
     {
         return $this->setters;
     }
     
+    /**
+     * Returns an array of extenders that will be invoked after an instance
+     * of the concrete type will be instantiated
+     *
+     * @access  public
+     * 
+     * @return  array
+     */
+    
     public function getExtenders()
     {
         return $this->extenders;
     }
+    
+    /**
+     * Add a setter that will be invoked after an instance of the concrete type is instantiated
+     *
+     * @access  public
+     *
+     * @param   \Closure    $setter Setter callback
+     *
+     * @return  \Opis\Container\Dependency  Self reference
+     */
     
     public function setter(Closure $setter)
     {
@@ -67,12 +127,30 @@ class Dependency implements Serializable
         return $this;
     }
     
+    /**
+     * Add an extender that will be invoked after an instance of the concrete type is instantiated
+     *
+     * @access  public
+     *
+     * @param   \Closure    $setter Setter callback
+     *
+     * @return  \Opis\Container\Extender
+     */
+        
     public function extender(Closure $callback)
     {
         $extender = new Extender($callback);
         $this->extenders[] = $extender;
         return $extender;
     }
+    
+    /**
+     * Serialize
+     *
+     * @access  public
+     *
+     * @return  string  Serialized object
+     */
     
     public function serialize()
     {
@@ -93,6 +171,14 @@ class Dependency implements Serializable
         
         return $object;
     }
+    
+    /**
+     * Deserialize
+     *
+     * @access  public
+     *
+     * @param   string  $data   Serialized object
+     */
     
     public function unserialize($data)
     {

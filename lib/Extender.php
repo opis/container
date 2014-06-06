@@ -24,33 +24,81 @@ use Closure;
 use Serializable;
 use Opis\Closure\SerializableClosure;
 
+/**
+ * Holds informations about an extender of an abstract type
+ */
+
 class Extender implements Serializable
 {
-    
+    /** @var    \Closure    Callback. */
     protected $callback;
     
+    /** @var    array       An array of setters. */
     protected $setters = array();
+    
+    
+    /**
+     * Constructor
+     *
+     * @access  public
+     *
+     * @param   \Closure    $callback   Extender's callback
+     */
     
     public function __construct(Closure $callback)
     {
         $this->callback = $callback;
     }
     
+    /**
+     * Get the callback associated with this extender
+     *
+     * @access  public
+     *
+     * @return  \Closure
+     */
+    
     public function getCallback()
     {
         return $this->callback;
     }
+    
+    /**
+     * Get all setters associated with this extender
+     *
+     * @access  public
+     *
+     * @return  array
+     */
     
     public function getSetters()
     {
         return $this->setters;
     }
     
+    /**
+     * Add a new setter
+     *
+     * @access  public
+     *
+     * @param   \Closure    $setter Add a new setter
+     *
+     * @return  \Opis\Container\Extender    Self reference
+     */
+    
     public function setter(Closure $setter)
     {
         $this->setters[] = $setter;
         return $this;
     }
+    
+    /**
+     * Serialize
+     *
+     * @access  public
+     *
+     * @return  string  Serialized object
+     */
     
     public function serialize()
     {
@@ -67,6 +115,14 @@ class Extender implements Serializable
         
         return $object;
     }
+    
+    /**
+     * Deserialize
+     *
+     * @access  public
+     *
+     * @param   string  $data   Serialized object
+     */
     
     public function unserialize($data)
     {
