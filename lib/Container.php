@@ -47,14 +47,14 @@ class Container implements Serializable
     /**
      * Builds an instance of a concrete class
      *
-     * @access	protected
+     * @access  protected
      *
-     * @throws	\Opis\Container\BindingException	If the concrete type is not instantiable
+     * @throws  \Opis\Container\BindingException    If the concrete type is not instantiable
      * 
-     * @param	string|\Closure	$concrete	The concrete class name or a closure callback
-     * @param	array			$arguments	Arguments that will be passed to the constructor
+     * @param   string|\Closure $concrete           The concrete class name or a closure callback
+     * @param   array           $arguments          Arguments that will be passed to the constructor
      *
-     * @return	mixed
+     * @return  mixed
      */
 	
 	protected function build($concrete, array $arguments = array())
@@ -85,14 +85,14 @@ class Container implements Serializable
     /**
      * Resolves arguments that will be passed to the constructor of a concrete class
      *
-     * @access	protected
+     * @access  protected
      *
-     * @throws	\Opis\Container\BindingException	If the arguments can't be resolved
+     * @throws  \Opis\Container\BindingException    If the arguments can't be resolved
      * 
-     * @param	\ReflectionMethod	$constructor	Constructor info
-     * @param	array				$arguments		Constructor's arguments
+     * @param   \ReflectionMethod   $constructor    Constructor info
+     * @param	array               $arguments      Constructor's arguments
      *
-     * @return	array	Resolved arguments
+     * @return  array   Resolved arguments
      */
 	
 	protected function resolveConstructor($constructor, array $arguments)
@@ -139,14 +139,14 @@ class Container implements Serializable
     /**
      * Resolves an abstract type to a concrete class
      *
-     * @access	protected
+     * @access  protected
      *
-     * @throws	\RuntimeException	If circular reference is detected
+     * @throws  \RuntimeException   If circular reference is detected
      * 
-     * @param	string	$abstract	Abstract class
-     * @param	array	$stack		(optional)	A stack of maped aliases used to prevent circular reference
+     * @param   string  $abstract   Abstract class
+     * @param   array   $stack      (optional) A stack of maped aliases used to prevent circular reference
      *
-     * @return	string	Resolved concrete class
+     * @return  string  Resolved concrete class
      */
 	
 	protected function get($abstract, array &$stack = array())
@@ -179,12 +179,12 @@ class Container implements Serializable
     /**
      * Binds an abstract type to a shared concrete type.
      *
-     * @access	public
+     * @access  public
      *
-     * @param	string			$abstract	Abstract type
-     * @param	string|Closure	$concrete	(optional) Concrete class name or an anonymous function callback
+     * @param   string          $abstract   Abstract type
+     * @param   string|Closure  $concrete   (optional) Concrete class name or an anonymous function callback
      *
-     * @return	\Opis\Container\Dependency
+     * @return  \Opis\Container\Dependency
      */
 	
 	public function singleton($abstract, $concrete = null)
@@ -195,15 +195,15 @@ class Container implements Serializable
     /**
      * Binds an abstract type to a concrete type.
      *
-     * @access	public
+     * @access  public
      *
-     * @throws	\InvalidArgumentException	
+     * @throws  \InvalidArgumentException	
      * 
-     * @param	string			$abstract	Abstract type
-     * @param	string|Closure	$concrete	(optional) Concrete class name or an anonymous function callback
-     * @param	boolean			$shared		(optional) Mark this type as shared
+     * @param   string          $abstract   Abstract type
+     * @param   string|Closure  $concrete   (optional) Concrete class name or an anonymous function callback
+     * @param   boolean         $shared     (optional) Mark this type as shared
      *
-     * @return	\Opis\Container\Dependency
+     * @return  \Opis\Container\Dependency
      */
 		
 	public function bind($abstract, $concrete = null, $shared = false)
@@ -235,12 +235,12 @@ class Container implements Serializable
     /**
      * Define a shorter name for a type
      *
-     * @access	public
+     * @access  public
      *
-     * @param	string	$type	Type name
-     * @param	string	$alias	Alias name
+     * @param   string  $type   Type name
+     * @param   string  $alias  Alias name
      *
-     * @return	\Opis\Container\Container	Self reference
+     * @return  \Opis\Container\Container   Self reference
      */
 	
 	public function alias($type, $alias)
@@ -252,12 +252,12 @@ class Container implements Serializable
     /**
      * Extends an abstract type
      *
-     * @access	public
+     * @access  public
      *
-     * @param	string		$abstract	Abstract type name
-     * @param	\Closure	$extender	The anonymous function callback that will return the extended instance of the specified abstract type
+     * @param   string      $abstract   Abstract type name
+     * @param   \Closure    $extender   The anonymous function callback that will return the extended instance of the specified abstract type
      *
-     * @return	\Opis\Container\Extender
+     * @return  \Opis\Container\Extender
      */
 	
 	public function extend($abstract, Closure $extender)
@@ -268,12 +268,12 @@ class Container implements Serializable
     /**
      * Builds an instance of an abstract type
      *
-     * @access public
+     * @access  public
      *
-     * @param	string	$abstract	Abstract type name
-     * @param	array	$arguments	(optional) Arguments that will be passed to the constructor
+     * @param   string  $abstract   Abstract type name
+     * @param   array   $arguments  (optional) Arguments that will be passed to the constructor
      *
-     * @return	mixed
+     * @return  mixed
      */
 	
 	public function make($abstract, array $arguments = array())
@@ -322,12 +322,12 @@ class Container implements Serializable
     /**
      * Invokes the 'make' method
      *
-     * @access public
+     * @access  public
      *
-     * @param	string	$abstract	Abstract type name
-     * @param	array	$arguments	(optional) Arguments that will be passed to the constructor
+     * @param   string  $abstract   Abstract type name
+     * @param   array   $arguments  (optional) Arguments that will be passed to the constructor
      *
-     * @return	mixed
+     * @return  mixed
      */
 		
 	public function __invoke($abstract, array $arguments = array())
@@ -338,9 +338,9 @@ class Container implements Serializable
     /**
      * Serialize the container
      *
-     * @access	public
+     * @access  public
      *
-     * @return	string
+     * @return  string
      */
 	
 	public function serialize()
@@ -360,9 +360,9 @@ class Container implements Serializable
     /**
      * Deserialize the container
      *
-     * @access public
+     * @access  public
      *
-     * @param	string	Serialized data
+     * @param   string  Serialized data
      */
 	
 	public function unserialize($data)
