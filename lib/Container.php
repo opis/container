@@ -35,15 +35,15 @@ use Opis\Closure\SerializableClosure;
 
 class Container implements Serializable
 {
-	/** @var	array	The container's bindings. */
-	protected $bindings  = array();
-	
-	/** @var 	array 	The container's singleton instances. */
-	protected $instances = array();
-	
-	/** @var 	array	Aliased types. */
-	protected $aliases = array();
-	
+    /** @var	array	The container's bindings. */
+    protected $bindings  = array();
+    
+    /** @var 	array 	The container's singleton instances. */
+    protected $instances = array();
+    
+    /** @var 	array	Aliased types. */
+    protected $aliases = array();
+    
     /**
      * Builds an instance of a concrete class
      *
@@ -56,32 +56,32 @@ class Container implements Serializable
      *
      * @return  mixed
      */
-	
-	protected function build($concrete, array $arguments = array())
-	{
-		if($concrete instanceof Closure)
-		{
-			return $concrete($this, $arguments);
-		}
-		
-		$reflection = new ReflectionClass($concrete);
-		
-		if(!$reflection->isInstantiable())
-		{
-			throw new BindingException($concrete . ' is not instantiable');
-		}
-		
-		$constructor = $reflection->getConstructor();
-		
-		if(is_null($constructor))
-		{
-			return new $concrete();
-		}
-		
-		return $reflection->newInstanceArgs($this->resolveConstructor($constructor, $arguments));
-		
-	}
-	
+    
+    protected function build($concrete, array $arguments = array())
+    {
+        if($concrete instanceof Closure)
+        {
+            return $concrete($this, $arguments);
+        }
+        
+        $reflection = new ReflectionClass($concrete);
+        
+        if(!$reflection->isInstantiable())
+        {
+            throw new BindingException($concrete . ' is not instantiable');
+        }
+        
+        $constructor = $reflection->getConstructor();
+        
+        if(is_null($constructor))
+        {
+            return new $concrete();
+        }
+        
+        return $reflection->newInstanceArgs($this->resolveConstructor($constructor, $arguments));
+        
+    }
+    
     /**
      * Resolves arguments that will be passed to the constructor of a concrete class
      *
@@ -94,48 +94,48 @@ class Container implements Serializable
      *
      * @return  array   Resolved arguments
      */
-	
-	protected function resolveConstructor($constructor, array $arguments)
-	{
-		$parameters = array_diff_key($constructor->getParameters(), $arguments);
-		
-		foreach($parameters as $parameter)
-		{
-			if(null === $class = $parameter->getClass())
-			{
-				if($parameter->isDefaultValueAvailable())
-				{
-					$arguments[] = $parameter->getDefaultValue();
-				}
-				else
-				{
-					throw new BindingException("Could not resolve [$parameter]");
-				}
-			}
-			else
-			{
-				$class = $class->name;
-				try
-				{
-					$arguments[] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
-				}
-				catch(BindingException $e)
-				{
-					if($parameter->isOptional())
-					{
-						$arguments[] = $parameter->getDefaultValue();
-					}
-					else
-					{
-						throw $e;
-					}
-				}
-			}
-		}
-		
-		return $arguments;
-	}
-	
+    
+    protected function resolveConstructor($constructor, array $arguments)
+    {
+        $parameters = array_diff_key($constructor->getParameters(), $arguments);
+        
+        foreach($parameters as $parameter)
+        {
+            if(null === $class = $parameter->getClass())
+            {
+                if($parameter->isDefaultValueAvailable())
+                {
+                    $arguments[] = $parameter->getDefaultValue();
+                }
+                else
+                {
+                    throw new BindingException("Could not resolve [$parameter]");
+                }
+            }
+            else
+            {
+                $class = $class->name;
+                try
+                {
+                    $arguments[] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
+                }
+                catch(BindingException $e)
+                {
+                    if($parameter->isOptional())
+                    {
+                        $arguments[] = $parameter->getDefaultValue();
+                    }
+                    else
+                    {
+                        throw $e;
+                    }
+                }
+            }
+        }
+        
+        return $arguments;
+    }
+    
     /**
      * Resolves an abstract type to a concrete class
      *
@@ -148,34 +148,34 @@ class Container implements Serializable
      *
      * @return  string  Resolved concrete class
      */
-	
-	protected function get($abstract, array &$stack = array())
-	{
-		if(isset($this->aliases[$abstract]))
-		{
-			$alias = $this->aliases[$abstract];
-			
-			if(in_array($alias, $stack))
-			{
-				$stack[] = $alias;
-				$error = implode(' => ', $stack);
-				throw new RuntimeException("Circular reference detected: $error");
-			}
-			else
-			{
-				$stack[] = $alias;
-				return $this->get($alias, $stack);
-			}
-		}
-		
-		if(!isset($this->bindings[$abstract]))
-		{
-			$this->bind($abstract, null);
-		}
-		
-		return $this->bindings[$abstract];
-	}
-	
+    
+    protected function get($abstract, array &$stack = array())
+    {
+        if(isset($this->aliases[$abstract]))
+        {
+            $alias = $this->aliases[$abstract];
+            
+            if(in_array($alias, $stack))
+            {
+                $stack[] = $alias;
+                $error = implode(' => ', $stack);
+                throw new RuntimeException("Circular reference detected: $error");
+            }
+            else
+            {
+                $stack[] = $alias;
+                return $this->get($alias, $stack);
+            }
+        }
+        
+        if(!isset($this->bindings[$abstract]))
+        {
+            $this->bind($abstract, null);
+        }
+        
+        return $this->bindings[$abstract];
+    }
+    
     /**
      * Binds an abstract type to a shared concrete type.
      *
@@ -186,12 +186,12 @@ class Container implements Serializable
      *
      * @return  \Opis\Container\Dependency
      */
-	
-	public function singleton($abstract, $concrete = null)
-	{
-		return $this->bind($abstract, $concrete, true);
-	}
-	
+    
+    public function singleton($abstract, $concrete = null)
+    {
+        return $this->bind($abstract, $concrete, true);
+    }
+    
     /**
      * Binds an abstract type to a concrete type.
      *
@@ -205,33 +205,33 @@ class Container implements Serializable
      *
      * @return  \Opis\Container\Dependency
      */
-		
-	public function bind($abstract, $concrete = null, $shared = false)
-	{
-		if(is_null($concrete))
-		{
-			$concrete = $abstract;
-		}
-		
-		if(!is_string($abstract))
-		{
-			throw new InvalidArgumentException('$abstract must be a string');
-		}
-		elseif(!is_string($concrete) && !($concrete instanceof Closure))
-		{
-			throw new InvalidArgumentException('$concrete must be a string or a closure');
-		}
-		
-		$dependency = new Dependency($concrete, $shared);
-		
-		unset($this->instances[$abstract]);
-		unset($this->aliases[$abstract]);
-		
-		$this->bindings[$abstract] = $dependency;
-		
-		return $dependency;
-	}
-	
+        
+    public function bind($abstract, $concrete = null, $shared = false)
+    {
+        if(is_null($concrete))
+        {
+            $concrete = $abstract;
+        }
+        
+        if(!is_string($abstract))
+        {
+            throw new InvalidArgumentException('$abstract must be a string');
+        }
+        elseif(!is_string($concrete) && !($concrete instanceof Closure))
+        {
+            throw new InvalidArgumentException('$concrete must be a string or a closure');
+        }
+        
+        $dependency = new Dependency($concrete, $shared);
+        
+        unset($this->instances[$abstract]);
+        unset($this->aliases[$abstract]);
+        
+        $this->bindings[$abstract] = $dependency;
+        
+        return $dependency;
+    }
+    
     /**
      * Define a shorter name for a type
      *
@@ -242,13 +242,13 @@ class Container implements Serializable
      *
      * @return  \Opis\Container\Container   Self reference
      */
-	
-	public function alias($type, $alias)
-	{
-		$this->aliases[$alias] = $type;
-		return $this;
-	}
-	
+    
+    public function alias($type, $alias)
+    {
+        $this->aliases[$alias] = $type;
+        return $this;
+    }
+    
     /**
      * Extends an abstract type
      *
@@ -259,12 +259,12 @@ class Container implements Serializable
      *
      * @return  \Opis\Container\Extender
      */
-	
-	public function extend($abstract, Closure $extender)
-	{
-		return $this->get($abstract)->extender($extender);
-	}
-	
+    
+    public function extend($abstract, Closure $extender)
+    {
+        return $this->get($abstract)->extender($extender);
+    }
+    
     /**
      * Builds an instance of an abstract type
      *
@@ -275,50 +275,50 @@ class Container implements Serializable
      *
      * @return  mixed
      */
-	
-	public function make($abstract, array $arguments = array())
-	{
-		if(isset($this->instances[$abstract]))
-		{
-			return $this->instances[$abstract];
-		}
-		
-		$dependency = $this->get($abstract);
-		
-		$instance = $this->build($dependency->getConcrete(), $arguments);
-		
-		foreach($dependency->getSetters() as $setter)
-		{
-			$setter($instance, $this);
-		}
-		
-		foreach($dependency->getExtenders() as $extender)
-		{
-			$callback = $extender->getCallback();
-			
-			$newinstance = $callback($instance, $this);
-			
-			if($newinstance === null || $newinstance === $instance)
-			{
-				continue;
-			}
-			
-			foreach($extender->getSetters() as $setter)
-			{
-				$setter($newinstance, $this);
-			}
-			
-			$instance = $newinstance;
-		}
-		
-		if($dependency->isShared())
-		{
-			$this->instances[$abstract] = $instance;
-		}
-		
-		return $instance;
-	}
-	
+    
+    public function make($abstract, array $arguments = array())
+    {
+        if(isset($this->instances[$abstract]))
+        {
+            return $this->instances[$abstract];
+        }
+        
+        $dependency = $this->get($abstract);
+        
+        $instance = $this->build($dependency->getConcrete(), $arguments);
+        
+        foreach($dependency->getSetters() as $setter)
+        {
+            $setter($instance, $this);
+        }
+        
+        foreach($dependency->getExtenders() as $extender)
+        {
+            $callback = $extender->getCallback();
+            
+            $newinstance = $callback($instance, $this);
+            
+            if($newinstance === null || $newinstance === $instance)
+            {
+                continue;
+            }
+            
+            foreach($extender->getSetters() as $setter)
+            {
+                $setter($newinstance, $this);
+            }
+            
+            $instance = $newinstance;
+        }
+        
+        if($dependency->isShared())
+        {
+            $this->instances[$abstract] = $instance;
+        }
+        
+        return $instance;
+    }
+    
     /**
      * Invokes the 'make' method
      *
@@ -329,12 +329,12 @@ class Container implements Serializable
      *
      * @return  mixed
      */
-		
-	public function __invoke($abstract, array $arguments = array())
-	{
-		return $this->make($abstract, $arguments);
-	}
-	
+        
+    public function __invoke($abstract, array $arguments = array())
+    {
+        return $this->make($abstract, $arguments);
+    }
+    
     /**
      * Serialize the container
      *
@@ -342,21 +342,21 @@ class Container implements Serializable
      *
      * @return  string
      */
-	
-	public function serialize()
-	{
-		SerializableClosure::enterContext();
-		
-		$object = serialize(array(
-			'bindings' => $this->bindings,
-			'aliases' => $this->aliases,
-		));
-		
-		SerializableClosure::exitContext();
-		
-		return $object;
-	}
-	
+    
+    public function serialize()
+    {
+        SerializableClosure::enterContext();
+        
+        $object = serialize(array(
+            'bindings' => $this->bindings,
+            'aliases' => $this->aliases,
+        ));
+        
+        SerializableClosure::exitContext();
+        
+        return $object;
+    }
+    
     /**
      * Deserialize the container
      *
@@ -364,13 +364,13 @@ class Container implements Serializable
      *
      * @param   string  Serialized data
      */
-	
-	public function unserialize($data)
-	{
-		$object = SerializableClosure::unserializeData($data);
-		$this->bindings = $object['bindings'];
-		$this->aliases = $object['aliases'];
-	}
+    
+    public function unserialize($data)
+    {
+        $object = SerializableClosure::unserializeData($data);
+        $this->bindings = $object['bindings'];
+        $this->aliases = $object['aliases'];
+    }
     
 }
 
