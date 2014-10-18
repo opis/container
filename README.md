@@ -4,67 +4,43 @@ Opis Container
 [![Latest Unstable Version](https://poser.pugx.org/opis/container/v/unstable.png)](//packagist.org/packages/opis/container)
 [![License](https://poser.pugx.org/opis/container/license.png)](https://packagist.org/packages/opis/container)
 
-Serializable dependency injection container
+Dependency injection container
 -------------------
+**Opis Container** is a library that provides a fully serializable dependency injection container.
+The **Opis Container** library can be used to deliver a more reusable, testable and maintainable code,
+while increasing the speed of development. 
 
+### License
 
-###Installation
+**Opis Container** is licensed under the [MIT License (MIT)](http://opensource.org/licenses/MIT). 
 
-This library is available on [Packagist](https://packagist.org/packages/opis/container) and can be installed using [Composer](http://getcomposer.org)
+### Requirements
+
+* PHP 5.3.* or higher
+* [Opis Closure](http://www.opis.io/closure) 1.3.*
+
+### Installation
+
+This library is available on [Packagist](https://packagist.org/packages/opis/container) and can be installed using [Composer](http://getcomposer.org).
 
 ```json
 {
     "require": {
-        "opis/container": "2.1.*"
+        "opis/container": "2.2.*"
     }
 }
 ```
 
-###Examples
+If you are unable to use [Composer](http://getcomposer.org) you can download the
+[tar.gz](https://github.com/opis/container/archive/2.2.0.tar.gz) or the [zip](https://github.com/opis/container/archive/2.2.0.zip)
+archive file, extract the content of the archive and include de `autoload.php` file into your project. 
 
 ```php
-use Opis\Container\Container;
 
-interface UserInterface
-{
-    public function name();
-}
-
-class UserClass implements UserInterface
-{
-    protected $name;
-    
-    public function setName($name)
-    {
-        $this->name = $name;
-    }
-    
-    public function name()
-    {
-        return $this->name;
-    }
-}
-
-$container = new Container();
-$container->bind('UserInterface', 'UserClass')
-          ->setter(function($instance, $container){
-                $instance->setName('My name');
-          });
-
-$container->alias('UserInterface', 'User'); //aliasing
-
-print $container('UserInterface')->name(); //> My name
-print $container->make('UserInterface')->name(); //> My name
-
-print $container->make('User')->name(); //> My name
-print $container('User')->name(); //> My name
-
-//Serialize
-$serialized = serialize($container);
-//Unserialize
-$unserialized = unserialize($serialized);
-
-print $unserialized('User')->name(); //> My name
-print $unserialized->make('User')->name(); //> My name
+require_once 'path/to/container-2.2.0/autoload.php';
 
 ```
+
+### Documentation
+
+Examples and documentation can be found at http://opis.io/container .
