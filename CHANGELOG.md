@@ -1,5 +1,9 @@
 CHANGELOG
 -------------
+### Opis Container 2.3.0
+
+* Updated `opis/closure` library dependency to version `~2.0.*`
+
 ### Opis Container 2.2.0, 2014.10.18
 
 * Added autoload file
