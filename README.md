@@ -17,7 +17,7 @@ while increasing the speed of development.
 ### Requirements
 
 * PHP 5.3.* or higher
-* [Opis Closure](http://www.opis.io/closure) 1.3.*
+* [Opis Closure](http://www.opis.io/closure) ~2.0
 
 ### Installation
 
@@ -26,18 +26,18 @@ This library is available on [Packagist](https://packagist.org/packages/opis/con
 ```json
 {
     "require": {
-        "opis/container": "2.2.*"
+        "opis/container": "2.3.*"
     }
 }
 ```
 
 If you are unable to use [Composer](http://getcomposer.org) you can download the
-[tar.gz](https://github.com/opis/container/archive/2.2.0.tar.gz) or the [zip](https://github.com/opis/container/archive/2.2.0.zip)
+[tar.gz](https://github.com/opis/container/archive/2.3.0.tar.gz) or the [zip](https://github.com/opis/container/archive/2.3.0.zip)
 archive file, extract the content of the archive and include de `autoload.php` file into your project. 
 
 ```php
 
-require_once 'path/to/container-2.2.0/autoload.php';
+require_once 'path/to/container-2.3.0/autoload.php';
 
 ```
 

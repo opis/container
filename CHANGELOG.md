@@ -1,6 +1,6 @@
 CHANGELOG
 -------------
-### Opis Container 2.3.0
+### Opis Container 2.3.0, 2015.07.31
 
 * Updated `opis/closure` library dependency to version `~2.0.*`
 
