@@ -99,13 +99,13 @@ class Container implements Serializable
     {
         $parameters = array_diff_key($constructor->getParameters(), $arguments);
         
-        foreach($parameters as $parameter)
+        foreach($parameters as $key => $parameter)
         {
             if(null === $class = $parameter->getClass())
             {
                 if($parameter->isDefaultValueAvailable())
                 {
-                    $arguments[] = $parameter->getDefaultValue();
+                    $arguments[$key] = $parameter->getDefaultValue();
                 }
                 else
                 {
@@ -117,13 +117,13 @@ class Container implements Serializable
                 $class = $class->name;
                 try
                 {
-                    $arguments[] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
+                    $arguments[$key] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
                 }
                 catch(BindingException $e)
                 {
                     if($parameter->isOptional())
                     {
-                        $arguments[] = $parameter->getDefaultValue();
+                        $arguments[$key] = $parameter->getDefaultValue();
                     }
                     else
                     {
