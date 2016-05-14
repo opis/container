@@ -133,6 +133,8 @@ class Container implements Serializable
             }
         }
         
+        ksort($arguments);
+        
         return $arguments;
     }
     
