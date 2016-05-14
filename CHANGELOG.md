@@ -1,5 +1,9 @@
 CHANGELOG
 -------------
+### v2.3.3, 2016.05.14
+
+* Bugfix
+
 ### v2.3.2, 2016.05.09
 
 * Important bugfix
