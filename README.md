@@ -1,5 +1,6 @@
 Opis Container
 ==============
+[![Build Status](https://travis-ci.org/opis/container.svg?branch=3.0)](https://travis-ci.org/opis/container)
 [![Latest Stable Version](https://poser.pugx.org/opis/container/version.png)](https://packagist.org/packages/opis/container)
 [![Latest Unstable Version](https://poser.pugx.org/opis/container/v/unstable.png)](//packagist.org/packages/opis/container)
 [![License](https://poser.pugx.org/opis/container/license.png)](https://packagist.org/packages/opis/container)
