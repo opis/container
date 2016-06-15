@@ -20,9 +20,14 @@
     "autoload": {
         "psr-4": {"Opis\\Container\\": "lib/"}
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Opis\\Container\\Test\\": "tests/"
+        }
+    },
     "extra": {
         "branch-alias": {
-            "dev-master": "4.0.x-dev"
+            "dev-master": "3.0.x-dev"
         }
     }
 }
