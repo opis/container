@@ -88,7 +88,7 @@ class Container implements Serializable
      * @param string $alias
      * @return $this
      */
-    public function alias(string $type, string $alias): static
+    public function alias(string $type, string $alias): self 
     {
         $this->aliases[$alias] = $type;
         return $this;
