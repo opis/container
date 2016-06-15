@@ -15,7 +15,7 @@
         "opis/closure": "^2.1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "4.8.*"
+        "phpunit/phpunit": "5.4.*"
     },
     "autoload": {
         "psr-4": {"Opis\\Container\\": "lib/"}
