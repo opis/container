@@ -2,11 +2,8 @@ language: php
 
 php:
   - 7.0
-  - hhvm
   
 matrix:
-  allow_failures:
-    - php: hhvm
   fast_finish: true
   
 sudo: false
