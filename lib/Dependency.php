@@ -3,7 +3,7 @@
  * Opis Project
  * http://opis.io
  * ===========================================================================
- * Copyright 2013-2015 Marius Sarca
+ * Copyright 2013-2016 Marius Sarca
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,146 +24,105 @@ use Closure;
 use Serializable;
 use Opis\Closure\SerializableClosure;
 
-/**
- * This class holds informations about a concrete type
- */
-
 class Dependency implements Serializable
 {
-    /** @var    string  $concrete   Concrete type name. */
+    /** @var string */
     protected $concrete;
     
-    /** @var    boolean $shared     A flag that indicates if this type will be build as a singleton(shared). */
+    /** @var bool */
     protected $shared;
     
-    /** @var    array   $setters    An array of callbacks */
+    /** @var callable[] */
     protected $setters = array();
     
-    /** @var    array   $extenders  An array of extenders. */
+    /** @var  Extender[] */
     protected $extenders = array();
-    
+
+
     /**
-     * Constructor
-     *
-     * @access public
-     *
-     * @param   string  $concrete   Concrete class name
-     * @param   boolean $shared     Shared flag
+     * Dependency constructor.
+     * @param string $concrete
+     * @param bool $shared
      */
-    
-    public function __construct($concrete, $shared = false)
+    public function __construct(string $concrete, bool $shared = false)
     {
         $this->concrete = $concrete;
         $this->shared = $shared;
     }
-    
+
     /**
-     * Returns the concrete class name
-     *
-     * @access  public
-     * 
-     * @return  string
+     * @return string
      */
-    
-    public function getConcrete()
+    public function getConcrete(): string
     {
         return $this->concrete;
     }
-    
+
     /**
-     * Returns TRUE if this concrete type is shared or FALSE otherwise
-     *
-     * @access  public
-     * 
-     * @return  boolean
+     * @return bool
      */
-    
-    public function isShared()
+    public function isShared(): bool
     {
         return $this->shared;
     }
-    
+
+
     /**
-     * Returns an array of setters that will be invoked after an instance
-     * of the concrete class will be instanciated
-     *
-     * @access  public
-     * 
-     * @return  array
+     * @return callable[]
      */
-    
-    public function getSetters()
+    public function getSetters(): array
     {
         return $this->setters;
     }
-    
+
     /**
-     * Returns an array of extenders that will be invoked after an instance
-     * of the concrete type will be instantiated
-     *
-     * @access  public
-     * 
-     * @return  array
+     * @return Extender[]
      */
-    
-    public function getExtenders()
+    public function getExtenders(): array
     {
         return $this->extenders;
     }
-    
+
+
     /**
-     * Add a setter that will be invoked after an instance of the concrete type is instantiated
-     *
-     * @access  public
-     *
-     * @param   \Closure    $setter Setter callback
-     *
-     * @return  \Opis\Container\Dependency  Self reference
+     * @param callable $setter
+     * @return Dependency
      */
-    
-    public function setter(Closure $setter)
+    public function setter(callable $setter): self
     {
         $this->setters[] = $setter;
         return $this;
     }
-    
+
+
     /**
-     * Add an extender that will be invoked after an instance of the concrete type is instantiated
-     *
-     * @access  public
-     *
-     * @param   \Closure    $setter Setter callback
-     *
-     * @return  \Opis\Container\Extender
+     * @param callable $callback
+     * @return Extender
      */
-        
-    public function extender(Closure $callback)
+    public function extender(callable $callback): Extender
     {
         $extender = new Extender($callback);
         $this->extenders[] = $extender;
         return $extender;
     }
-    
+
+
     /**
-     * Serialize
-     *
-     * @access  public
-     *
-     * @return  string  Serialized object
+     * @return string
      */
-    
     public function serialize()
     {
-        $map = function($value) { return SerializableClosure::from($value); };
-        
         SerializableClosure::enterContext();
-        
+
+        $callback = function($value){
+            return $value instanceof Closure ? SerializableClosure::from($value) : $value;
+        };
+
+
         $object = serialize(array(
-            'concrete' => $this->concrete instanceof Closure
-                        ? SerializableClosure::from($this->concrete)
-                        : $this->concrete,
+            'concrete' => $callback($this->concrete),
             'shared' => $this->shared,
-            'setters' => array_map($map, $this->setters),
+            'setters' => array_map($callback, $this->setters),
             'extenders' => $this->extenders,
         ));
         
@@ -171,28 +130,23 @@ class Dependency implements Serializable
         
         return $object;
     }
-    
+
+
     /**
-     * Deserialize
-     *
-     * @access  public
-     *
-     * @param   string  $data   Serialized object
+     * @param string $data
      */
-    
     public function unserialize($data)
     {
-        $object = SerializableClosure::unserializeData($data);
-        
-        $map = function($value) { return $value->getClosure(); };
-        
-        $this->concrete = ($object['concrete'] instanceof SerializableClosure)
-                        ? $object['concrete']->getClosure()
-                        : $object['concrete'];
-                        
+        $object = unserialize($data);
+
+        $callback = function ($value){
+            return $value instanceof SerializableClosure ? $value->getClosure() : $value;
+        };
+
+        $this->concrete = $callback($object['concrete']);
         $this->shared = $object['shared'];
         $this->extenders = $object['extenders'];
-        $this->setters = array_map($map, $object['setters']);
+        $this->setters = array_map($callback, $object['setters']);
     }
     
 }

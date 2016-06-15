@@ -3,7 +3,7 @@
  * Opis Project
  * http://opis.io
  * ===========================================================================
- * Copyright 2013-2015 Marius Sarca
+ * Copyright 2013-2016 Marius Sarca
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,369 +20,264 @@
 
 namespace Opis\Container;
 
-use Closure;
-use ReflectionClass;
-use RuntimeException;
 use InvalidArgumentException;
-use Serializable;
 use Opis\Closure\SerializableClosure;
+use ReflectionClass;
+use ReflectionMethod;
+use RuntimeException;
+use Serializable;
 
 /**
  * Container
  *
  * The serializable container class
  */
-
 class Container implements Serializable
 {
-    /** @var	array	The container's bindings. */
-    protected $bindings  = array();
-    
-    /** @var 	array 	The container's singleton instances. */
+    /** @var Dependency[] */
+    protected $bindings = array();
+
+    /** @var array */
     protected $instances = array();
-    
-    /** @var 	array	Aliased types. */
+
+    /** @var array */
     protected $aliases = array();
-    
+
+    /** @var ReflectionClass[] */
+    protected $reflectionClass = array();
+
+    /** @var ReflectionMethod[] */
+    protected $reflectionMethod = array();
+
     /**
-     * Builds an instance of a concrete class
-     *
-     * @access  protected
-     *
-     * @throws  \Opis\Container\BindingException    If the concrete type is not instantiable
-     * 
-     * @param   string|\Closure $concrete           The concrete class name or a closure callback
-     * @param   array           $arguments          Arguments that will be passed to the constructor
-     *
-     * @return  mixed
+     * @param string $abstract
+     * @param null|string|callable $concrete
+     * @return Dependency
      */
-    
-    protected function build($concrete, array $arguments = array())
-    {
-        if($concrete instanceof Closure)
-        {
-            return $concrete($this, $arguments);
-        }
-        
-        $reflection = new ReflectionClass($concrete);
-        
-        if(!$reflection->isInstantiable())
-        {
-            throw new BindingException($concrete . ' is not instantiable');
-        }
-        
-        $constructor = $reflection->getConstructor();
-        
-        if(is_null($constructor))
-        {
-            return new $concrete();
-        }
-        
-        return $reflection->newInstanceArgs($this->resolveConstructor($constructor, $arguments));
-        
-    }
-    
-    /**
-     * Resolves arguments that will be passed to the constructor of a concrete class
-     *
-     * @access  protected
-     *
-     * @throws  \Opis\Container\BindingException    If the arguments can't be resolved
-     * 
-     * @param   \ReflectionMethod   $constructor    Constructor info
-     * @param	array               $arguments      Constructor's arguments
-     *
-     * @return  array   Resolved arguments
-     */
-    
-    protected function resolveConstructor($constructor, array $arguments)
-    {
-        $parameters = array_diff_key($constructor->getParameters(), $arguments);
-        
-        foreach($parameters as $key => $parameter)
-        {
-            if(null === $class = $parameter->getClass())
-            {
-                if($parameter->isDefaultValueAvailable())
-                {
-                    $arguments[$key] = $parameter->getDefaultValue();
-                }
-                else
-                {
-                    throw new BindingException("Could not resolve [$parameter]");
-                }
-            }
-            else
-            {
-                $class = $class->name;
-                try
-                {
-                    $arguments[$key] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
-                }
-                catch(BindingException $e)
-                {
-                    if($parameter->isOptional())
-                    {
-                        $arguments[$key] = $parameter->getDefaultValue();
-                    }
-                    else
-                    {
-                        throw $e;
-                    }
-                }
-            }
-        }
-        
-        ksort($arguments);
-        
-        return $arguments;
-    }
-    
-    /**
-     * Resolves an abstract type to a concrete class
-     *
-     * @access  protected
-     *
-     * @throws  \RuntimeException   If circular reference is detected
-     * 
-     * @param   string  $abstract   Abstract class
-     * @param   array   $stack      (optional) A stack of maped aliases used to prevent circular reference
-     *
-     * @return  string  Resolved concrete class
-     */
-    
-    protected function get($abstract, array &$stack = array())
-    {
-        if(isset($this->aliases[$abstract]))
-        {
-            $alias = $this->aliases[$abstract];
-            
-            if(in_array($alias, $stack))
-            {
-                $stack[] = $alias;
-                $error = implode(' => ', $stack);
-                throw new RuntimeException("Circular reference detected: $error");
-            }
-            else
-            {
-                $stack[] = $alias;
-                return $this->get($alias, $stack);
-            }
-        }
-        
-        if(!isset($this->bindings[$abstract]))
-        {
-            $this->bind($abstract, null);
-        }
-        
-        return $this->bindings[$abstract];
-    }
-    
-    /**
-     * Binds an abstract type to a shared concrete type.
-     *
-     * @access  public
-     *
-     * @param   string          $abstract   Abstract type
-     * @param   string|Closure  $concrete   (optional) Concrete class name or an anonymous function callback
-     *
-     * @return  \Opis\Container\Dependency
-     */
-    
-    public function singleton($abstract, $concrete = null)
+    public function singleton(string $abstract, $concrete = null): Dependency
     {
         return $this->bind($abstract, $concrete, true);
     }
-    
+
     /**
-     * Binds an abstract type to a concrete type.
-     *
-     * @access  public
-     *
-     * @throws  \InvalidArgumentException	
-     * 
-     * @param   string          $abstract   Abstract type
-     * @param   string|Closure  $concrete   (optional) Concrete class name or an anonymous function callback
-     * @param   boolean         $shared     (optional) Mark this type as shared
-     *
-     * @return  \Opis\Container\Dependency
+     * @param string $abstract
+     * @param null|string|callable $concrete
+     * @param bool $shared
+     * @return Dependency
      */
-        
-    public function bind($abstract, $concrete = null, $shared = false)
+    public function bind(string $abstract, $concrete = null, bool $shared = false): Dependency
     {
-        if(is_null($concrete))
-        {
+        if (is_null($concrete)) {
             $concrete = $abstract;
         }
-        
-        if(!is_string($abstract))
-        {
-            throw new InvalidArgumentException('$abstract must be a string');
+
+        if (!is_string($concrete) && !is_callable($concrete)) {
+            throw new InvalidArgumentException('The `$concrete` argument must be a string or a callable');
         }
-        elseif(!is_string($concrete) && !($concrete instanceof Closure))
-        {
-            throw new InvalidArgumentException('$concrete must be a string or a closure');
-        }
-        
+
         $dependency = new Dependency($concrete, $shared);
-        
+
         unset($this->instances[$abstract]);
         unset($this->aliases[$abstract]);
-        
-        $this->bindings[$abstract] = $dependency;
-        
-        return $dependency;
+
+        return $this->bindings[$abstract] = $dependency;
     }
-    
+
     /**
-     * Define a shorter name for a type
-     *
-     * @access  public
-     *
-     * @param   string  $type   Type name
-     * @param   string  $alias  Alias name
-     *
-     * @return  \Opis\Container\Container   Self reference
+     * @param string $type
+     * @param string $alias
+     * @return $this
      */
-    
-    public function alias($type, $alias)
+    public function alias(string $type, string $alias): static
     {
         $this->aliases[$alias] = $type;
         return $this;
     }
-    
+
+
     /**
-     * Extends an abstract type
-     *
-     * @access  public
-     *
-     * @param   string      $abstract   Abstract type name
-     * @param   \Closure    $extender   The anonymous function callback that will return the extended instance of the specified abstract type
-     *
-     * @return  \Opis\Container\Extender
+     * @param string $abstract
+     * @param callable $extender
+     * @return Extender
      */
-    
-    public function extend($abstract, Closure $extender)
+    public function extend(string $abstract, callable $extender): Extender
     {
-        return $this->get($abstract)->extender($extender);
+        return $this->resolve($abstract)->extender($extender);
     }
-    
+
     /**
-     * Builds an instance of an abstract type
-     *
-     * @access  public
-     *
-     * @param   string  $abstract   Abstract type name
-     * @param   array   $arguments  (optional) Arguments that will be passed to the constructor
-     *
-     * @return  mixed
+     * @param string $abstract
+     * @param array $arguments
+     * @return mixed
      */
-    
-    public function make($abstract, array $arguments = array())
+    public function make(string $abstract, array $arguments = array())
     {
-        if(isset($this->instances[$abstract]))
-        {
+        if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
         }
-        
-        $dependency = $this->get($abstract);
-        
+
+        $dependency = $this->resolve($abstract);
+
         $instance = $this->build($dependency->getConcrete(), $arguments);
-        
-        foreach($dependency->getSetters() as $setter)
-        {
+
+        foreach ($dependency->getSetters() as $setter) {
             $setter($instance, $this);
         }
-        
-        foreach($dependency->getExtenders() as $extender)
-        {
+
+        foreach ($dependency->getExtenders() as $extender) {
             $callback = $extender->getCallback();
-            
+
             $newinstance = $callback($instance, $this);
-            
-            if($newinstance === null || $newinstance === $instance)
-            {
+
+            if ($newinstance === null || $newinstance === $instance) {
                 continue;
             }
-            
-            foreach($extender->getSetters() as $setter)
-            {
+
+            foreach ($extender->getSetters() as $setter) {
                 $setter($newinstance, $this);
             }
-            
+
             $instance = $newinstance;
         }
-        
-        if($dependency->isShared())
-        {
+
+        if ($dependency->isShared()) {
             $this->instances[$abstract] = $instance;
         }
-        
+
         return $instance;
     }
-    
+
     /**
-     * Invokes the 'make' method
-     *
-     * @access  public
-     *
-     * @param   string  $abstract   Abstract type name
-     * @param   array   $arguments  (optional) Arguments that will be passed to the constructor
-     *
-     * @return  mixed
+     * @param string $abstract
+     * @param array $arguments
+     * @return mixed
      */
-        
-    public function __invoke($abstract, array $arguments = array())
+    public function __invoke(string $abstract, array $arguments = array())
     {
         return $this->make($abstract, $arguments);
     }
-    
+
+
     /**
-     * Serialize the container
+     * Resolves an abstract type
      *
-     * @access  public
-     *
-     * @return  string
+     * @param string $abstract
+     * @param array $stack
+     * @return Dependency
      */
-    
+    protected function resolve(string $abstract, array &$stack = array()): Dependency
+    {
+        if (isset($this->aliases[$abstract])) {
+            $alias = $this->aliases[$abstract];
+
+            if (in_array($alias, $stack)) {
+                $stack[] = $alias;
+                $error = implode(' => ', $stack);
+                throw new RuntimeException("Circular reference detected: $error");
+            } else {
+                $stack[] = $alias;
+                return $this->resolve($alias, $stack);
+            }
+        }
+
+        if (!isset($this->bindings[$abstract])) {
+            $this->bind($abstract, null);
+        }
+
+        return $this->bindings[$abstract];
+    }
+
+    /**
+     * Builds an instance of a concrete type
+     *
+     * @param string $concrete
+     * @param array $arguments
+     * @return object
+     */
+    protected function build(string $concrete, array $arguments = array())
+    {
+        if (is_callable($concrete)) {
+            return $concrete($this, $arguments);
+        }
+
+        if (isset($this->reflectionClass[$concrete])) {
+            $reflection = $this->reflectionClass[$concrete];
+        } else {
+            $reflection = $this->reflectionClass[$concrete] = new ReflectionClass($concrete);
+        }
+
+        if (!$reflection->isInstantiable()) {
+            throw new BindingException('The `' . $concrete . '` type` is not instantiable');
+        }
+
+        if (isset($this->reflectionMethod[$concrete])) {
+            $constructor = $this->reflectionMethod[$concrete];
+        } else {
+            $constructor = $this->reflectionMethod[$concrete] = $reflection->getConstructor();
+        }
+
+        if (is_null($constructor)) {
+            return new $concrete();
+        }
+
+        // Resolve arguments
+        $parameters = array_diff_key($constructor->getParameters(), $arguments);
+
+        /**
+         * @var int $key
+         * @var  \ReflectionParameter $parameter
+         */
+        foreach ($parameters as $key => $parameter) {
+            if (null === $class = $parameter->getClass()) {
+                if ($parameter->isDefaultValueAvailable()) {
+                    $arguments[$key] = $parameter->getDefaultValue();
+                } else {
+                    throw new BindingException("Could not resolve [$parameter]");
+                }
+                continue;
+            }
+
+            try {
+                $class = $class->name;
+                $arguments[$key] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
+            } catch (BindingException $e) {
+                if (!$parameter->isOptional()) {
+                    throw $e;
+                }
+                $arguments[$key] = $parameter->getDefaultValue();
+            }
+        }
+
+        ksort($arguments);
+
+        return $reflection->newInstanceArgs($arguments);
+    }
+
+    /**
+     * @return string
+     */
     public function serialize()
     {
         SerializableClosure::enterContext();
-        
+
         $object = serialize(array(
             'bindings' => $this->bindings,
             'aliases' => $this->aliases,
         ));
-        
+
         SerializableClosure::exitContext();
-        
+
         return $object;
     }
-    
+
     /**
-     * Deserialize the container
-     *
-     * @access  public
-     *
-     * @param   string  Serialized data
+     * @param string $data
      */
-    
     public function unserialize($data)
     {
-        $object = SerializableClosure::unserializeData($data);
+        $object = unserialize($data);
         $this->bindings = $object['bindings'];
         $this->aliases = $object['aliases'];
     }
-    
-}
 
-/**
- * Exception class
- *
- * This exception is raised if an abstract type can't be resolved to a concrete type
- */
-
-class BindingException extends \RuntimeException
-{
-	
 }

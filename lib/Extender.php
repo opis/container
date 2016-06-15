@@ -3,7 +3,7 @@
  * Opis Project
  * http://opis.io
  * ===========================================================================
- * Copyright 2013-2015 Marius Sarca
+ * Copyright 2013-2016 Marius Sarca
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,90 +24,67 @@ use Closure;
 use Serializable;
 use Opis\Closure\SerializableClosure;
 
-/**
- * Holds informations about an extender of an abstract type
- */
-
 class Extender implements Serializable
 {
-    /** @var    \Closure    Callback. */
+    /** @var callable */
     protected $callback;
     
-    /** @var    array       An array of setters. */
+    /** @var callable[] */
     protected $setters = array();
-    
-    
+
+
     /**
-     * Constructor
-     *
-     * @access  public
-     *
-     * @param   \Closure    $callback   Extender's callback
+     * Extender constructor.
+     * @param callable $callback
      */
-    
-    public function __construct(Closure $callback)
+    public function __construct(callable $callback)
     {
         $this->callback = $callback;
     }
-    
+
+
     /**
-     * Get the callback associated with this extender
-     *
-     * @access  public
-     *
-     * @return  \Closure
+     * @return callable
      */
-    
-    public function getCallback()
+    public function getCallback(): callable
     {
         return $this->callback;
     }
-    
+
+
     /**
-     * Get all setters associated with this extender
-     *
-     * @access  public
-     *
-     * @return  array
+     * @return callable[]
      */
-    
-    public function getSetters()
+    public function getSetters(): array
     {
         return $this->setters;
     }
-    
+
+
     /**
-     * Add a new setter
-     *
-     * @access  public
-     *
-     * @param   \Closure    $setter Add a new setter
-     *
-     * @return  \Opis\Container\Extender    Self reference
+     * @param callable $setter
+     * @return Extender
      */
-    
-    public function setter(Closure $setter)
+    public function setter(callable $setter): self
     {
         $this->setters[] = $setter;
         return $this;
     }
-    
+
+
     /**
-     * Serialize
-     *
-     * @access  public
-     *
-     * @return  string  Serialized object
+     * @return string
      */
-    
     public function serialize()
     {
-        $map = function($value) { return SerializableClosure::from($value); };
+        $map= function($value) {
+            return $value instanceof Closure ? SerializableClosure::from($value) : $value;
+        };
         
         SerializableClosure::enterContext();
         
         $object = serialize(array(
-            'callback' => SerializableClosure::from($this->callback),
+            'callback' => $map($this->callback),
             'setters' => array_map($map, $this->setters),
         ));
         
@@ -115,22 +92,19 @@ class Extender implements Serializable
         
         return $object;
     }
-    
+
     /**
-     * Deserialize
-     *
-     * @access  public
-     *
-     * @param   string  $data   Serialized object
+     * @param string $data
      */
-    
     public function unserialize($data)
     {
-        $object = SerializableClosure::unserializeData($data);
+        $object = unserialize($data);
         
-        $map = function($value) { return $value->getClosure(); };
+        $map = function($value) {
+            return $value instanceof SerializableClosure ? $value->getClosure() : $value;
+        };
         
-        $this->callback = $object['callback']->getClosure();
+        $this->callback = $map($object['callback']);
         $this->setters = array_map($map, $object['setters']);
     }
     
