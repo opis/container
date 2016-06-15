@@ -88,7 +88,7 @@ class Container implements Serializable
      * @param string $alias
      * @return $this
      */
-    public function alias(string $type, string $alias): self 
+    public function alias(string $type, string $alias): self
     {
         $this->aliases[$alias] = $type;
         return $this;
@@ -190,11 +190,11 @@ class Container implements Serializable
     /**
      * Builds an instance of a concrete type
      *
-     * @param string $concrete
+     * @param string|callable $concrete
      * @param array $arguments
      * @return object
      */
-    protected function build(string $concrete, array $arguments = array())
+    protected function build($concrete, array $arguments = array())
     {
         if (is_callable($concrete)) {
             return $concrete($this, $arguments);

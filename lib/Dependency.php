@@ -41,19 +41,19 @@ class Dependency implements Serializable
 
     /**
      * Dependency constructor.
-     * @param string $concrete
+     * @param string|callable $concrete
      * @param bool $shared
      */
-    public function __construct(string $concrete, bool $shared = false)
+    public function __construct($concrete, bool $shared = false)
     {
         $this->concrete = $concrete;
         $this->shared = $shared;
     }
 
     /**
-     * @return string
+     * @return string|callable
      */
-    public function getConcrete(): string
+    public function getConcrete()
     {
         return $this->concrete;
     }
