@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - PHP targeted version is now 7.0.*
 - `Opis\Container\BindingException` class was moved into its own file
 - CHANGELOG [format](http://keepachangelog.com)
+- Source files were moved from `lib` to `src`
 
 ## v2.3.3 - 2016.05.14
 ### Fixed
