@@ -3,7 +3,7 @@
 spl_autoload_register(function($class){
    
     $class = ltrim($class, '\\');
-    $dir = __DIR__ . '/lib';
+    $dir = __DIR__ . '/src';
     $namespace = 'Opis\Container';
     
     if(strpos($class, $namespace) === 0)
