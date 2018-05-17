@@ -107,7 +107,7 @@ class Container implements Serializable
      * @param array $arguments
      * @return mixed
      */
-    public function make(string $abstract, array $arguments = array())
+    public function make(string $abstract, array $arguments = [])
     {
         if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
@@ -149,7 +149,7 @@ class Container implements Serializable
      * @param array $arguments
      * @return mixed
      */
-    public function __invoke(string $abstract, array $arguments = array())
+    public function __invoke(string $abstract, array $arguments = [])
     {
         return $this->make($abstract, $arguments);
     }
@@ -162,7 +162,7 @@ class Container implements Serializable
      * @param array $stack
      * @return Dependency
      */
-    protected function resolve(string $abstract, array &$stack = array()): Dependency
+    protected function resolve(string $abstract, array &$stack = []): Dependency
     {
         if (isset($this->aliases[$abstract])) {
             $alias = $this->aliases[$abstract];
@@ -257,10 +257,10 @@ class Container implements Serializable
     {
         SerializableClosure::enterContext();
 
-        $object = serialize(array(
+        $object = serialize([
             'bindings' => $this->bindings,
             'aliases' => $this->aliases,
-        ));
+        ]);
 
         SerializableClosure::exitContext();
 

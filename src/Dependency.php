@@ -30,10 +30,10 @@ class Dependency implements Serializable
     protected $shared;
 
     /** @var callable[] */
-    protected $setters = array();
+    protected $setters = [];
 
     /** @var  Extender[] */
-    protected $extenders = array();
+    protected $extenders = [];
 
 
     /**
@@ -116,12 +116,12 @@ class Dependency implements Serializable
         };
 
 
-        $object = serialize(array(
+        $object = serialize([
             'concrete' => $callback($this->concrete),
             'shared' => $this->shared,
             'setters' => array_map($callback, $this->setters),
             'extenders' => $this->extenders,
-        ));
+        ]);
 
         SerializableClosure::exitContext();
 

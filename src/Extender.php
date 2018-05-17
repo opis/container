@@ -27,7 +27,7 @@ class Extender implements Serializable
     protected $callback;
 
     /** @var callable[] */
-    protected $setters = array();
+    protected $setters = [];
 
 
     /**
@@ -80,10 +80,10 @@ class Extender implements Serializable
 
         SerializableClosure::enterContext();
 
-        $object = serialize(array(
+        $object = serialize([
             'callback' => $map($this->callback),
             'setters' => array_map($map, $this->setters),
-        ));
+        ]);
 
         SerializableClosure::exitContext();
 
