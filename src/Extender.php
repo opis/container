@@ -25,7 +25,7 @@ class Extender implements Serializable
 {
     /** @var callable */
     protected $callback;
-    
+
     /** @var callable[] */
     protected $setters = array();
 
@@ -74,19 +74,19 @@ class Extender implements Serializable
      */
     public function serialize()
     {
-        $map= function($value) {
+        $map = function ($value) {
             return $value instanceof Closure ? SerializableClosure::from($value) : $value;
         };
-        
+
         SerializableClosure::enterContext();
-        
+
         $object = serialize(array(
             'callback' => $map($this->callback),
             'setters' => array_map($map, $this->setters),
         ));
-        
+
         SerializableClosure::exitContext();
-        
+
         return $object;
     }
 
@@ -96,13 +96,13 @@ class Extender implements Serializable
     public function unserialize($data)
     {
         $object = unserialize($data);
-        
-        $map = function($value) {
+
+        $map = function ($value) {
             return $value instanceof SerializableClosure ? $value->getClosure() : $value;
         };
-        
+
         $this->callback = $map($object['callback']);
         $this->setters = array_map($map, $object['setters']);
     }
-    
+
 }

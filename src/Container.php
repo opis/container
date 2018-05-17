@@ -32,19 +32,19 @@ use Serializable;
 class Container implements Serializable
 {
     /** @var Dependency[] */
-    protected $bindings = array();
+    protected $bindings = [];
 
     /** @var array */
-    protected $instances = array();
+    protected $instances = [];
 
     /** @var array */
-    protected $aliases = array();
+    protected $aliases = [];
 
     /** @var ReflectionClass[] */
-    protected $reflectionClass = array();
+    protected $reflectionClass = [];
 
     /** @var ReflectionMethod[] */
-    protected $reflectionMethod = array();
+    protected $reflectionMethod = [];
 
     /**
      * @param string $abstract
@@ -191,7 +191,7 @@ class Container implements Serializable
      * @param array $arguments
      * @return object
      */
-    protected function build($concrete, array $arguments = array())
+    protected function build($concrete, array $arguments = [])
     {
         if (is_callable($concrete)) {
             return $concrete($this, $arguments);

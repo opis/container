@@ -25,13 +25,13 @@ class Dependency implements Serializable
 {
     /** @var string */
     protected $concrete;
-    
+
     /** @var bool */
     protected $shared;
-    
+
     /** @var callable[] */
     protected $setters = array();
-    
+
     /** @var  Extender[] */
     protected $extenders = array();
 
@@ -111,7 +111,7 @@ class Dependency implements Serializable
     {
         SerializableClosure::enterContext();
 
-        $callback = function($value){
+        $callback = function ($value) {
             return $value instanceof Closure ? SerializableClosure::from($value) : $value;
         };
 
@@ -122,9 +122,9 @@ class Dependency implements Serializable
             'setters' => array_map($callback, $this->setters),
             'extenders' => $this->extenders,
         ));
-        
+
         SerializableClosure::exitContext();
-        
+
         return $object;
     }
 
@@ -136,7 +136,7 @@ class Dependency implements Serializable
     {
         $object = unserialize($data);
 
-        $callback = function ($value){
+        $callback = function ($value) {
             return $value instanceof SerializableClosure ? $value->getClosure() : $value;
         };
 
@@ -145,5 +145,5 @@ class Dependency implements Serializable
         $this->extenders = $object['extenders'];
         $this->setters = array_map($callback, $object['setters']);
     }
-    
+
 }
