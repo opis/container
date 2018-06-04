@@ -19,9 +19,9 @@ namespace Opis\Container;
 
 use InvalidArgumentException;
 use Opis\Closure\SerializableClosure;
+use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionMethod;
-use RuntimeException;
 use Serializable;
 
 /**
@@ -29,7 +29,7 @@ use Serializable;
  *
  * The serializable container class
  */
-class Container implements Serializable
+class Container implements ContainerInterface, Serializable
 {
     /** @var Dependency[] */
     protected $bindings = [];
@@ -137,6 +137,26 @@ class Container implements Serializable
     public function __invoke(string $abstract)
     {
         return $this->make($abstract);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function get($id)
+    {
+        if (!isset($this->aliases[$id])) {
+            throw new NotFoundException();
+        }
+
+        return $this->make($id);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function has($id)
+    {
+        return isset($this->aliases[$id]);
     }
 
     /**
