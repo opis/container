@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## v3.0.x-dev
 ### Added
 - Scalar type hints
-- Tests
+- Support for PSR11
 
 ### Changed
 - PHP targeted version is now 7.0.*
