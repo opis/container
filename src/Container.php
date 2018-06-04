@@ -105,7 +105,6 @@ class Container implements Serializable
     /**
      * @param string $abstract
      * @return mixed
-     * @throws \ReflectionException
      */
     public function make(string $abstract)
     {
@@ -134,7 +133,6 @@ class Container implements Serializable
     /**
      * @param string $abstract
      * @return mixed
-     * @throws \ReflectionException
      */
     public function __invoke(string $abstract)
     {
@@ -156,7 +154,7 @@ class Container implements Serializable
             if (in_array($alias, $stack)) {
                 $stack[] = $alias;
                 $error = implode(' => ', $stack);
-                throw new RuntimeException("Circular reference detected: $error");
+                throw new BindingException("Circular reference detected: $error");
             } else {
                 $stack[] = $alias;
                 return $this->resolve($alias, $stack);
@@ -176,7 +174,6 @@ class Container implements Serializable
      * @param string|callable $concrete
      * @param array $arguments
      * @return object
-     * @throws \ReflectionException
      */
     protected function build($concrete, array $arguments = [])
     {
@@ -187,7 +184,11 @@ class Container implements Serializable
         if (isset($this->reflectionClass[$concrete])) {
             $reflection = $this->reflectionClass[$concrete];
         } else {
-            $reflection = $this->reflectionClass[$concrete] = new ReflectionClass($concrete);
+            try {
+                $reflection = $this->reflectionClass[$concrete] = new ReflectionClass($concrete);
+            } catch (\ReflectionException $e) {
+                throw new BindingException('ReflectionException: ' . $e->getMessage());
+            }
         }
 
         if (!$reflection->isInstantiable()) {

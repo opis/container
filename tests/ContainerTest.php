@@ -17,8 +17,8 @@
 
 namespace Opis\Container\Test;
 
+use Opis\Container\BindingException;
 use Opis\Container\Container;
-use Opis\Container\Test\Fixture\Bar2;
 use PHPUnit\Framework\TestCase;
 
 class ContainerTest extends TestCase
@@ -79,28 +79,27 @@ class ContainerTest extends TestCase
 
     public function testAlias()
     {
-        $this->container->alias(Fixture\Foo::class, 'foo');
+        $this->container->alias('foo', Fixture\Foo::class);
         $this->assertInstanceOf(Fixture\Foo::class, $this->container->make('foo'));
     }
 
     public function testMultipleAliases()
     {
-        $this->container->alias(Fixture\Foo::class, 'foo');
-        $this->container->alias('foo', 'bar');
-        $this->assertInstanceOf(Fixture\Foo::class, $this->container->make('bar'));
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     */
-    public function testAliasCircularException()
-    {
-        $this->container->alias(Fixture\Foo::class, 'foo');
-        $this->container->alias('foo', 'bar');
+        $this->container->alias('foo', Fixture\Foo::class);
         $this->container->alias('bar', 'foo');
         $this->assertInstanceOf(Fixture\Foo::class, $this->container->make('bar'));
     }
 
+    /**
+     * @expectedException \Opis\Container\BindingException
+     */
+    public function testAliasCircularException()
+    {
+        $this->container->alias('foo', Fixture\Foo::class);
+        $this->container->alias('bar', 'foo');
+        $this->container->alias('foo', 'bar');
+        $this->assertInstanceOf(Fixture\Foo::class, $this->container->make('bar'));
+    }
 
     public function testDependencyInjection()
     {
@@ -121,7 +120,7 @@ class ContainerTest extends TestCase
         $this->container
             ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
         $this->container->bind(Fixture\Bar2::class, function(Container $container, array $args = []){
-            return new Bar2($container->make(Fixture\FooInterface::class), 2);
+            return new Fixture\Bar2($container->make(Fixture\FooInterface::class), 2);
         });
         $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
     }
@@ -131,9 +130,59 @@ class ContainerTest extends TestCase
         $this->container
             ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
         $this->container->bind(Fixture\Bar2::class, function(Container $container, array $args = []){
-            return new Bar2($container->make(Fixture\FooInterface::class), $args['number']);
+            return new Fixture\Bar2($container->make(Fixture\FooInterface::class), $args['number']);
         })->arguments(['number' => 2]);
         $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
+    }
+
+    public function testDefaultExtender()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class)
+            ->extender(function(Fixture\Foo $instance){
+                $instance->setProperty('foo');
+            });
+
+        $this->assertEquals('foo', $this->container->make(Fixture\FooInterface::class)->getProperty());
+    }
+
+    public function testExtendMethod()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+
+        $this->container->extend(Fixture\FooInterface::class, function(Fixture\Foo $instance){
+            $instance->setProperty('extended');
+        });
+
+        $this->assertEquals('extended', $this->container->make(Fixture\FooInterface::class)->getProperty());
+    }
+
+    public function testWrapperExtender()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+
+        $this->container->extend(Fixture\FooInterface::class, function(Fixture\Foo $instance){
+            $instance->setProperty('foo');
+            return new Fixture\FooExtender($instance);
+        });
+
+        $this->assertEquals('parent:foo', $this->container->make(Fixture\FooInterface::class)->getProperty());
+    }
+
+    public function testWrapperExtenderExtended()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+
+        $this->container->extend(Fixture\FooInterface::class, function(Fixture\FooInterface $instance){
+            $instance->setProperty('foo');
+            return new Fixture\FooExtender($instance);
+        });
+
+        $this->container->extend(Fixture\FooInterface::class, function(Fixture\FooInterface $instance){
+            $instance->setProperty('bar');
+            return new Fixture\FooExtender($instance);
+        });
+
+        $this->assertEquals('parent:self:bar', $this->container->make(Fixture\FooInterface::class)->getProperty());
     }
 
 }
