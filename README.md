@@ -7,41 +7,43 @@ Opis Container
 
 Dependency injection container
 -------------------
-**Opis Container** is a library that provides a fully serializable dependency injection container.
-The **Opis Container** library can be used to deliver a more reusable, testable and maintainable code,
-while increasing the speed of development. 
+**Opis Container** is a library that provides an easy to use, fully serializable dependency injection container,
+with support for PSR-11.
+
+### Documentation
+
+The full documentation for this library can be found [here][documentation]
 
 ### License
 
-**Opis Container** is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0). 
+**Opis Container** is licensed under the [Apache License, Version 2.0][apache_license]. 
 
 ### Requirements
 
 * PHP 7.0.* or higher
-* [Opis Closure](http://www.opis.io/closure) ^2.1.0
+* [Opis Closure] ^3.0
 
-### Installation
+## Installation
 
-This library is available on [Packagist](https://packagist.org/packages/opis/container) and can be installed using [Composer](http://getcomposer.org).
+**Opis Container** is available on [Packagist] and it can be installed from a 
+command line interface by using [Composer]. 
+
+```bash
+composer require opis/container
+```
+
+Or you could directly reference it into your `composer.json` file as a dependency
 
 ```json
 {
     "require": {
-        "opis/container": "3.0.x-dev"
+        "opis/container": "^3.0"
     }
 }
 ```
 
-If you are unable to use [Composer](http://getcomposer.org) you can download the
-[tar.gz](https://github.com/opis/container/archive/3.0.tar.gz) or the [zip](https://github.com/opis/container/archive/3.0.zip)
-archive file, extract the content of the archive and include de `autoload.php` file into your project. 
-
-```php
-
-require_once 'path/to/container-3.0/autoload.php';
-
-```
-
-### Documentation
-
-Examples and documentation can be found [here](http://opis.io/container).
+[documentation]: https://www.opis.io/container
+[apache_license]: https://www.apache.org/licenses/LICENSE-2.0 "Apache License"
+[Packagist]: https://packagist.org/packages/opis/container "Packagist"
+[Composer]: https://getcomposer.org "Composer"
+[Opis Closure]: https://www.opis.io/closure
