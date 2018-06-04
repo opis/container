@@ -81,11 +81,11 @@ class Container implements Serializable
     }
 
     /**
-     * @param string $type
      * @param string $alias
+     * @param string $type
      * @return $this
      */
-    public function alias(string $type, string $alias): self
+    public function alias(string $alias, string $type): self
     {
         $this->aliases[$alias] = $type;
         return $this;
@@ -94,11 +94,12 @@ class Container implements Serializable
     /**
      * @param string $abstract
      * @param callable $extender
-     * @return Extender
+     * @return $this
      */
-    public function extend(string $abstract, callable $extender): Extender
+    public function extend(string $abstract, callable $extender): self
     {
-        return $this->resolve($abstract)->extender($extender);
+        $this->resolve($abstract)->extender($extender);
+        return $this;
     }
 
     /**
@@ -116,24 +117,11 @@ class Container implements Serializable
 
         $instance = $this->build($dependency->getConcrete(), $dependency->getArguments());
 
-        foreach ($dependency->getSetters() as $setter) {
-            $setter($instance, $this);
-        }
-
-        foreach ($dependency->getExtenders() as $extender) {
-            $callback = $extender->getCallback();
-
+        foreach ($dependency->getExtenders() as $callback) {
             $new_instance = $callback($instance, $this);
-
-            if ($new_instance === null || $new_instance === $instance) {
-                continue;
+            if ($new_instance !== null) {
+                $instance = $new_instance;
             }
-
-            foreach ($extender->getSetters() as $setter) {
-                $setter($new_instance, $this);
-            }
-
-            $instance = $new_instance;
         }
 
         if ($dependency->isShared()) {
@@ -152,7 +140,6 @@ class Container implements Serializable
     {
         return $this->make($abstract);
     }
-
 
     /**
      * Resolves an abstract type

@@ -29,10 +29,7 @@ class Dependency implements Serializable
     /** @var bool */
     protected $shared;
 
-    /** @var callable[] */
-    protected $setters = [];
-
-    /** @var  Extender[] */
+    /** @var  callable[] */
     protected $extenders = [];
 
     /** @var array */
@@ -66,15 +63,6 @@ class Dependency implements Serializable
         return $this->shared;
     }
 
-
-    /**
-     * @return callable[]
-     */
-    public function getSetters(): array
-    {
-        return $this->setters;
-    }
-
     /**
      * @return array
      */
@@ -84,21 +72,11 @@ class Dependency implements Serializable
     }
 
     /**
-     * @return Extender[]
+     * @return callable[]
      */
     public function getExtenders(): array
     {
         return $this->extenders;
-    }
-
-    /**
-     * @param callable $setter
-     * @return Dependency
-     */
-    public function setter(callable $setter): self
-    {
-        $this->setters[] = $setter;
-        return $this;
     }
 
     /**
@@ -113,15 +91,13 @@ class Dependency implements Serializable
 
     /**
      * @param callable $callback
-     * @return Extender
+     * @return Dependency
      */
-    public function extender(callable $callback): Extender
+    public function extender(callable $callback): self
     {
-        $extender = new Extender($callback);
-        $this->extenders[] = $extender;
-        return $extender;
+        $this->extenders[] = $callback;
+        return $this;
     }
-
 
     /**
      * @return string
@@ -138,15 +114,13 @@ class Dependency implements Serializable
         $object = serialize([
             'concrete' => $callback($this->concrete),
             'shared' => $this->shared,
-            'setters' => array_map($callback, $this->setters),
-            'extenders' => $this->extenders,
+            'extenders' => array_map($callback, $this->extenders)
         ]);
 
         SerializableClosure::exitContext();
 
         return $object;
     }
-
 
     /**
      * @param string $data
@@ -161,8 +135,6 @@ class Dependency implements Serializable
 
         $this->concrete = $callback($object['concrete']);
         $this->shared = $object['shared'];
-        $this->extenders = $object['extenders'];
-        $this->setters = array_map($callback, $object['setters']);
+        $this->extenders = array_map($callback, $object['extenders']);
     }
-
 }
