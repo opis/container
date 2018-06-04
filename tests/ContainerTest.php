@@ -17,7 +17,6 @@
 
 namespace Opis\Container\Test;
 
-use Opis\Container\BindingException;
 use Opis\Container\Container;
 use PHPUnit\Framework\TestCase;
 
@@ -183,6 +182,30 @@ class ContainerTest extends TestCase
         });
 
         $this->assertEquals('parent:self:bar', $this->container->make(Fixture\FooInterface::class)->getProperty());
+    }
+
+    public function testPsrNotFound()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+
+        $this->assertFalse($this->container->has(Fixture\FooInterface::class));
+    }
+
+    /**
+     * @expectedException \Opis\Container\NotFoundException
+     */
+    public function testPsrNotFoundException()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+
+        $this->container->get(Fixture\FooInterface::class);
+    }
+
+    public function testPsrFound()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+        $this->container->alias('foo', Fixture\FooInterface::class);
+        $this->assertInstanceOf(Fixture\FooInterface::class, $this->container->get('foo'));
     }
 
 }
