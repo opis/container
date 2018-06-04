@@ -18,6 +18,7 @@
 namespace Opis\Container\Test;
 
 use Opis\Container\Container;
+use Opis\Container\Test\Fixture\Bar2;
 use PHPUnit\Framework\TestCase;
 
 class ContainerTest extends TestCase
@@ -107,10 +108,32 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(Fixture\Bar::class, $this->container->make(Fixture\Bar::class));
     }
 
-    public function testDIArguments1()
+    public function testDIArguments()
     {
-        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
-        $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class, [1 => 2]));
+        $this->container
+            ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+        $this->container->bind(Fixture\Bar2::class)->arguments([1 => 2]);
+        $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
+    }
+
+    public function testDICallback()
+    {
+        $this->container
+            ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+        $this->container->bind(Fixture\Bar2::class, function(Container $container, array $args = []){
+            return new Bar2($container->make(Fixture\FooInterface::class), 2);
+        });
+        $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
+    }
+
+    public function testDICallbackWithArgs()
+    {
+        $this->container
+            ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+        $this->container->bind(Fixture\Bar2::class, function(Container $container, array $args = []){
+            return new Bar2($container->make(Fixture\FooInterface::class), $args['number']);
+        })->arguments(['number' => 2]);
+        $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
     }
 
 }
