@@ -124,17 +124,17 @@ class Container implements Serializable
         foreach ($dependency->getExtenders() as $extender) {
             $callback = $extender->getCallback();
 
-            $newinstance = $callback($instance, $this);
+            $new_instance = $callback($instance, $this);
 
-            if ($newinstance === null || $newinstance === $instance) {
+            if ($new_instance === null || $new_instance === $instance) {
                 continue;
             }
 
             foreach ($extender->getSetters() as $setter) {
-                $setter($newinstance, $this);
+                $setter($new_instance, $this);
             }
 
-            $instance = $newinstance;
+            $instance = $new_instance;
         }
 
         if ($dependency->isShared()) {
