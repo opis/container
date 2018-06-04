@@ -22,12 +22,12 @@ class Foo implements FooInterface
 {
     protected $prop;
 
-    public function setProperty($value)
+    public function setProperty(string $value)
     {
         $this->prop = $value;
     }
 
-    public function getProperty()
+    public function getProperty(): string
     {
         return $this->prop;
     }

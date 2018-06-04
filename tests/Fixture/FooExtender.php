@@ -1,6 +1,6 @@
 <?php
 /* ===========================================================================
- * Copyright 2013-2018 The Opis Project
+ * Copyright 2018 The Opis Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,28 @@
 
 namespace Opis\Container\Test\Fixture;
 
-
-interface FooInterface
+class FooExtender implements FooInterface
 {
-    public function setProperty(string $value);
+    private $foo;
+    private $prop;
 
-    public function getProperty(): string ;
+    public function __construct(FooInterface $foo)
+    {
+        $this->foo = $foo;
+    }
+
+    public function setProperty(string $value)
+    {
+        $this->prop = $value;
+    }
+
+    public function getProperty(): string
+    {
+        if ($this->prop === null) {
+            return 'parent:' . $this->foo->getProperty();
+        }
+        return 'self:' . $this->prop;
+    }
+
+
 }
