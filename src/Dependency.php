@@ -35,6 +35,9 @@ class Dependency implements Serializable
     /** @var  Extender[] */
     protected $extenders = [];
 
+    /** @var array */
+    protected $arguments = [];
+
 
     /**
      * Dependency constructor.
@@ -73,13 +76,20 @@ class Dependency implements Serializable
     }
 
     /**
+     * @return array
+     */
+    public function getArguments(): array
+    {
+        return $this->arguments;
+    }
+
+    /**
      * @return Extender[]
      */
     public function getExtenders(): array
     {
         return $this->extenders;
     }
-
 
     /**
      * @param callable $setter
@@ -91,6 +101,15 @@ class Dependency implements Serializable
         return $this;
     }
 
+    /**
+     * @param array $arguments
+     * @return Dependency
+     */
+    public function arguments(array $arguments): self
+    {
+        $this->arguments = $arguments;
+        return $this;
+    }
 
     /**
      * @param callable $callback

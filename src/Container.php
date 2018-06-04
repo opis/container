@@ -69,7 +69,7 @@ class Container implements Serializable
         }
 
         if (!is_string($concrete) && !is_callable($concrete)) {
-            throw new InvalidArgumentException('The `$concrete` argument must be a string or a callable');
+            throw new InvalidArgumentException('The second argument must be an instantiable class or a callable');
         }
 
         $dependency = new Dependency($concrete, $shared);
@@ -91,7 +91,6 @@ class Container implements Serializable
         return $this;
     }
 
-
     /**
      * @param string $abstract
      * @param callable $extender
@@ -104,10 +103,10 @@ class Container implements Serializable
 
     /**
      * @param string $abstract
-     * @param array $arguments
      * @return mixed
+     * @throws \ReflectionException
      */
-    public function make(string $abstract, array $arguments = [])
+    public function make(string $abstract)
     {
         if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
@@ -115,7 +114,7 @@ class Container implements Serializable
 
         $dependency = $this->resolve($abstract);
 
-        $instance = $this->build($dependency->getConcrete(), $arguments);
+        $instance = $this->build($dependency->getConcrete(), $dependency->getArguments());
 
         foreach ($dependency->getSetters() as $setter) {
             $setter($instance, $this);
@@ -146,12 +145,12 @@ class Container implements Serializable
 
     /**
      * @param string $abstract
-     * @param array $arguments
      * @return mixed
+     * @throws \ReflectionException
      */
-    public function __invoke(string $abstract, array $arguments = [])
+    public function __invoke(string $abstract)
     {
-        return $this->make($abstract, $arguments);
+        return $this->make($abstract);
     }
 
 
@@ -190,6 +189,7 @@ class Container implements Serializable
      * @param string|callable $concrete
      * @param array $arguments
      * @return object
+     * @throws \ReflectionException
      */
     protected function build($concrete, array $arguments = [])
     {
@@ -204,7 +204,7 @@ class Container implements Serializable
         }
 
         if (!$reflection->isInstantiable()) {
-            throw new BindingException('The `' . $concrete . '` type` is not instantiable');
+            throw new BindingException("The '${concrete}' type is not instantiable");
         }
 
         if (isset($this->reflectionMethod[$concrete])) {
