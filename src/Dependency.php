@@ -114,7 +114,8 @@ class Dependency implements Serializable
         $object = serialize([
             'concrete' => $callback($this->concrete),
             'shared' => $this->shared,
-            'extenders' => array_map($callback, $this->extenders)
+            'extenders' => array_map($callback, $this->extenders),
+            'arguments' => $this->arguments,
         ]);
 
         SerializableClosure::exitContext();
@@ -136,5 +137,6 @@ class Dependency implements Serializable
         $this->concrete = $callback($object['concrete']);
         $this->shared = $object['shared'];
         $this->extenders = array_map($callback, $object['extenders']);
+        $this->arguments = $object['arguments'];
     }
 }
