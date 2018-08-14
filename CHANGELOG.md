@@ -8,10 +8,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Support for PSR11
 
 ### Changed
-- PHP targeted version is now 7.0.*
-- `Opis\Container\BindingException` class was moved into its own file
-- CHANGELOG [format](http://keepachangelog.com)
-- Source files were moved from `lib` to `src`
+- PHP targeted version is now 7.x
+- This is a total refactor of the library
 
 ## v2.3.3 - 2016.05.14
 ### Fixed
