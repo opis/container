@@ -57,7 +57,9 @@ class ContainerTest extends TestCase
     public function testMake()
     {
         $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
-        $this->assertInstanceOf(Fixture\FooInterface::class, $this->container->make(Fixture\FooInterface::class));
+        $obj = $this->container->make(Fixture\FooInterface::class);
+        $this->assertInstanceOf(Fixture\FooInterface::class, $obj);
+        $this->assertEquals('foo', $obj->getValue());
     }
 
     public function testMakeWithCallback()
@@ -65,7 +67,9 @@ class ContainerTest extends TestCase
         $this->container->bind(Fixture\FooInterface::class, function(){
             return new Fixture\Foo();
         });
-        $this->assertInstanceOf(Fixture\FooInterface::class, $this->container->make(Fixture\FooInterface::class));
+        $obj = $this->container->make(Fixture\FooInterface::class);
+        $this->assertInstanceOf(Fixture\FooInterface::class, $obj);
+        $this->assertEquals('foo', $obj->getValue());
     }
 
     public function testSingleton()
@@ -138,10 +142,10 @@ class ContainerTest extends TestCase
     {
         $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class)
             ->extender(function(Fixture\Foo $instance){
-                $instance->setProperty('foo');
+                $instance->setValue('bar');
             });
 
-        $this->assertEquals('foo', $this->container->make(Fixture\FooInterface::class)->getProperty());
+        $this->assertEquals('bar', $this->container->make(Fixture\FooInterface::class)->getValue());
     }
 
     public function testExtendMethod()
@@ -149,10 +153,10 @@ class ContainerTest extends TestCase
         $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
 
         $this->container->extend(Fixture\FooInterface::class, function(Fixture\Foo $instance){
-            $instance->setProperty('extended');
+            $instance->setValue('extended');
         });
 
-        $this->assertEquals('extended', $this->container->make(Fixture\FooInterface::class)->getProperty());
+        $this->assertEquals('extended', $this->container->make(Fixture\FooInterface::class)->getValue());
     }
 
     public function testWrapperExtender()
@@ -160,11 +164,10 @@ class ContainerTest extends TestCase
         $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
 
         $this->container->extend(Fixture\FooInterface::class, function(Fixture\Foo $instance){
-            $instance->setProperty('foo');
             return new Fixture\FooExtender($instance);
         });
 
-        $this->assertEquals('parent:foo', $this->container->make(Fixture\FooInterface::class)->getProperty());
+        $this->assertEquals('FOO', $this->container->make(Fixture\FooInterface::class)->getValue());
     }
 
     public function testWrapperExtenderExtended()
@@ -172,16 +175,16 @@ class ContainerTest extends TestCase
         $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
 
         $this->container->extend(Fixture\FooInterface::class, function(Fixture\FooInterface $instance){
-            $instance->setProperty('foo');
+            $instance->setValue('bar');
             return new Fixture\FooExtender($instance);
         });
 
         $this->container->extend(Fixture\FooInterface::class, function(Fixture\FooInterface $instance){
-            $instance->setProperty('bar');
+            $instance->setValue('bar');
             return new Fixture\FooExtender($instance);
         });
 
-        $this->assertEquals('parent:self:bar', $this->container->make(Fixture\FooInterface::class)->getProperty());
+        $this->assertEquals('+BAR', $this->container->make(Fixture\FooInterface::class)->getValue());
     }
 
     public function testPsrNotFound()

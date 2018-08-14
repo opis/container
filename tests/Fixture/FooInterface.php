@@ -20,7 +20,7 @@ namespace Opis\Container\Test\Fixture;
 
 interface FooInterface
 {
-    public function setProperty(string $value);
+    public function getValue(): string ;
 
-    public function getProperty(): string ;
+    public function setValue(string $value);
 }

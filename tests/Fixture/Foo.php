@@ -20,15 +20,20 @@ namespace Opis\Container\Test\Fixture;
 
 class Foo implements FooInterface
 {
-    protected $prop;
+    private $value;
 
-    public function setProperty(string $value)
+    public function __construct(string $value = 'foo')
     {
-        $this->prop = $value;
+        $this->value = $value;
     }
 
-    public function getProperty(): string
+    public function getValue(): string
     {
-        return $this->prop;
+        return $this->value;
+    }
+
+    public function setValue(string $value)
+    {
+        $this->value = $value;
     }
 }

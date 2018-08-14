@@ -20,25 +20,19 @@ namespace Opis\Container\Test\Fixture;
 class FooExtender implements FooInterface
 {
     private $foo;
-    private $prop;
 
     public function __construct(FooInterface $foo)
     {
         $this->foo = $foo;
     }
 
-    public function setProperty(string $value)
+    public function getValue(): string
     {
-        $this->prop = $value;
+        return strtoupper($this->foo->getValue());
     }
 
-    public function getProperty(): string
+    public function setValue(string $value)
     {
-        if ($this->prop === null) {
-            return 'parent:' . $this->foo->getProperty();
-        }
-        return 'self:' . $this->prop;
+        $this->foo->setValue('+' . $value);
     }
-
-
 }
