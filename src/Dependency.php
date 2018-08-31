@@ -95,16 +95,22 @@ class Dependency implements Serializable
     {
         SerializableClosure::enterContext();
 
-        $concrete = !$this->concrete instanceof Closure ?: SerializableClosure::from($this->concrete);
+        $concrete = $this->concrete instanceof Closure
+                    ? SerializableClosure::from($this->concrete)
+                    : $this->concrete;
         $extenders = [];
         $arguments = [];
 
         foreach ($this->extenders as $value) {
-            $extenders[] = !$value instanceof Closure ?: SerializableClosure::from($value);
+            $extenders[] = $value instanceof Closure
+                        ? SerializableClosure::from($value)
+                        : $value;
         }
 
         foreach ($this->arguments as $value) {
-            $arguments[] = !$value instanceof Closure ?: SerializableClosure::from($value);
+            $arguments[] = $value instanceof Closure
+                        ? SerializableClosure::from($value)
+                        : $value;
         }
 
         $object = serialize([
@@ -126,7 +132,10 @@ class Dependency implements Serializable
     {
         $object = unserialize($data);
 
-        $this->concrete = !$object['concrete'] instanceof SerializableClosure ?: $object['concrete']->getClosure();
+        $this->concrete = $object['concrete'] instanceof SerializableClosure
+                        ? $object['concrete']->getClosure()
+                        : $object['concrete'];
+
         $this->shared = $object['shared'];
 
         foreach ($object['extenders'] as &$value) {
