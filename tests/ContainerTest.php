@@ -114,7 +114,7 @@ class ContainerTest extends TestCase
     {
         $this->container
             ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
-        $this->container->bind(Fixture\Bar2::class)->arguments([1 => 2]);
+        $this->container->bind(Fixture\Bar2::class, null, [1 => 2]);
         $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
     }
 
@@ -134,18 +134,8 @@ class ContainerTest extends TestCase
             ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
         $this->container->bind(Fixture\Bar2::class, function(Container $container, array $args = []){
             return new Fixture\Bar2($container->make(Fixture\FooInterface::class), $args['number']);
-        })->arguments(['number' => 2]);
+        }, ['number' => 2]);
         $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
-    }
-
-    public function testDefaultExtender()
-    {
-        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class)
-            ->extender(function(Fixture\Foo $instance){
-                $instance->setValue('bar');
-            });
-
-        $this->assertEquals('bar', $this->container->make(Fixture\FooInterface::class)->getValue());
     }
 
     public function testExtendMethod()
@@ -210,5 +200,4 @@ class ContainerTest extends TestCase
         $this->container->alias('foo', Fixture\FooInterface::class);
         $this->assertInstanceOf(Fixture\FooInterface::class, $this->container->get('foo'));
     }
-
 }

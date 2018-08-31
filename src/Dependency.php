@@ -29,21 +29,22 @@ class Dependency implements Serializable
     /** @var bool */
     protected $shared;
 
-    /** @var  callable[] */
+    /** @var callable[] */
     protected $extenders = [];
 
     /** @var array */
-    protected $arguments = [];
-
+    protected $arguments;
 
     /**
      * Dependency constructor.
      * @param string|callable $concrete
+     * @param array $arguments
      * @param bool $shared
      */
-    public function __construct($concrete, bool $shared = false)
+    public function __construct($concrete, array $arguments, bool $shared)
     {
         $this->concrete = $concrete;
+        $this->arguments = $arguments;
         $this->shared = $shared;
     }
 
@@ -80,23 +81,11 @@ class Dependency implements Serializable
     }
 
     /**
-     * @param array $arguments
-     * @return Dependency
-     */
-    public function arguments(array $arguments): self
-    {
-        $this->arguments = $arguments;
-        return $this;
-    }
-
-    /**
      * @param callable $callback
-     * @return Dependency
      */
-    public function extender(callable $callback): self
+    public function addExtender(callable $callback)
     {
         $this->extenders[] = $callback;
-        return $this;
     }
 
     /**
@@ -106,16 +95,23 @@ class Dependency implements Serializable
     {
         SerializableClosure::enterContext();
 
-        $callback = function ($value) {
-            return $value instanceof Closure ? SerializableClosure::from($value) : $value;
-        };
+        $concrete = !$this->concrete instanceof Closure ?: SerializableClosure::from($this->concrete);
+        $extenders = [];
+        $arguments = [];
 
+        foreach ($this->extenders as $value) {
+            $extenders[] = !$value instanceof Closure ?: SerializableClosure::from($value);
+        }
+
+        foreach ($this->arguments as $value) {
+            $arguments[] = !$value instanceof Closure ?: SerializableClosure::from($value);
+        }
 
         $object = serialize([
-            'concrete' => $callback($this->concrete),
+            'concrete' => $concrete,
+            'arguments' => $arguments,
             'shared' => $this->shared,
-            'extenders' => array_map($callback, $this->extenders),
-            'arguments' => $this->arguments,
+            'extenders' => $extenders,
         ]);
 
         SerializableClosure::exitContext();
@@ -130,13 +126,22 @@ class Dependency implements Serializable
     {
         $object = unserialize($data);
 
-        $callback = function ($value) {
-            return $value instanceof SerializableClosure ? $value->getClosure() : $value;
-        };
-
-        $this->concrete = $callback($object['concrete']);
+        $this->concrete = !$object['concrete'] instanceof SerializableClosure ?: $object['concrete']->getClosure();
         $this->shared = $object['shared'];
-        $this->extenders = array_map($callback, $object['extenders']);
+
+        foreach ($object['extenders'] as &$value) {
+            if ($value instanceof SerializableClosure) {
+                $value = $value->getClosure();
+            }
+        }
+
+        foreach ($object['arguments'] as &$value) {
+            if ($value instanceof SerializableClosure) {
+                $value = $value->getClosure();
+            }
+        }
+
         $this->arguments = $object['arguments'];
+        $this->extenders = $object['extenders'];
     }
 }

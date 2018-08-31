@@ -24,11 +24,6 @@ use ReflectionClass;
 use ReflectionMethod;
 use Serializable;
 
-/**
- * Container
- *
- * The serializable container class
- */
 class Container implements ContainerInterface, Serializable
 {
     /** @var Dependency[] */
@@ -49,35 +44,23 @@ class Container implements ContainerInterface, Serializable
     /**
      * @param string $abstract
      * @param null|string|callable $concrete
-     * @return Dependency
+     * @param array $arguments
+     * @return Container
      */
-    public function singleton(string $abstract, $concrete = null): Dependency
+    public function singleton(string $abstract, $concrete = null, array $arguments = []): self
     {
-        return $this->bind($abstract, $concrete, true);
+        return $this->bindDependency($abstract, $concrete, $arguments, true);
     }
 
     /**
      * @param string $abstract
      * @param null|string|callable $concrete
-     * @param bool $shared
-     * @return Dependency
+     * @param array $arguments
+     * @return Container
      */
-    public function bind(string $abstract, $concrete = null, bool $shared = false): Dependency
+    public function bind(string $abstract, $concrete = null, array $arguments = []): self
     {
-        if (is_null($concrete)) {
-            $concrete = $abstract;
-        }
-
-        if (!is_string($concrete) && !is_callable($concrete)) {
-            throw new InvalidArgumentException('The second argument must be an instantiable class or a callable');
-        }
-
-        $dependency = new Dependency($concrete, $shared);
-
-        unset($this->instances[$abstract]);
-        unset($this->aliases[$abstract]);
-
-        return $this->bindings[$abstract] = $dependency;
+        return $this->bindDependency($abstract, $concrete, $arguments, false);
     }
 
     /**
@@ -98,7 +81,7 @@ class Container implements ContainerInterface, Serializable
      */
     public function extend(string $abstract, callable $extender): self
     {
-        $this->resolve($abstract)->extender($extender);
+        $this->resolve($abstract)->addExtender($extender);
         return $this;
     }
 
@@ -157,6 +140,33 @@ class Container implements ContainerInterface, Serializable
     public function has($id)
     {
         return isset($this->aliases[$id]);
+    }
+
+    /**
+     * @param string $abstract
+     * @param string|null|callable $concrete
+     * @param array $arguments
+     * @param bool $shared
+     * @return Container
+     */
+    protected function bindDependency(string $abstract, $concrete, array $arguments, bool $shared): self
+    {
+        if (is_null($concrete)) {
+            $concrete = $abstract;
+        }
+
+        if (!is_string($concrete) && !is_callable($concrete)) {
+            throw new InvalidArgumentException('The second argument must be an instantiable class or a callable');
+        }
+
+        $dependency = new Dependency($concrete, $arguments, $shared);
+
+        unset($this->instances[$abstract]);
+        unset($this->aliases[$abstract]);
+
+        $this->bindings[$abstract] = $dependency;
+
+        return $this;
     }
 
     /**
