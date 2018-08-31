@@ -200,4 +200,24 @@ class ContainerTest extends TestCase
         $this->container->alias('foo', Fixture\FooInterface::class);
         $this->assertInstanceOf(Fixture\FooInterface::class, $this->container->get('foo'));
     }
+
+    public function testSerializeWithClass()
+    {
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+        $container = unserialize(serialize($this->container));
+        $obj = $container->make(Fixture\FooInterface::class);
+        $this->assertInstanceOf(Fixture\FooInterface::class, $obj);
+        $this->assertEquals('foo', $obj->getValue());
+    }
+
+    public function testSerializeWithClosure()
+    {
+        $this->container->bind(Fixture\FooInterface::class, function(){
+            return new Fixture\Foo();
+        });
+        $container = unserialize(serialize($this->container));
+        $obj = $container->make(Fixture\FooInterface::class);
+        $this->assertInstanceOf(Fixture\FooInterface::class, $obj);
+        $this->assertEquals('foo', $obj->getValue());
+    }
 }
