@@ -2,7 +2,7 @@
     "name": "opis/container",
     "description": "Serializable dependency injection container",
     "keywords": ["opis", "dependency", "injection", "container", "IoC", "serializable", "php7"],
-    "homepage": "http://www.opis.io/container",
+    "homepage": "https://opis.io/container",
     "license": "Apache-2.0",
     "authors": [
         {

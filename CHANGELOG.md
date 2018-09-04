@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## v3.0.x-dev
+## v3.0.0, 2018.09.04
 ### Added
 - Scalar type hints
 - Support for PSR11

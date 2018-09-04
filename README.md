@@ -43,9 +43,9 @@ Or you could directly reference it into your `composer.json` file as a dependenc
 }
 ```
 
-[documentation]: https://www.opis.io/container
+[documentation]: https://opis.io/container
 [apache_license]: https://www.apache.org/licenses/LICENSE-2.0 "Apache License"
 [Packagist]: https://packagist.org/packages/opis/container "Packagist"
 [Composer]: https://getcomposer.org "Composer"
-[Opis Closure]: https://www.opis.io/closure
+[Opis Closure]: https://opis.io/closure
 [PSR Container]: https://github.com/php-fig/container
