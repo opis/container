@@ -1,13 +1,13 @@
 Opis Container
 ==============
-[![Build Status](https://travis-ci.org/opis/container.svg?branch=3.0)](https://travis-ci.org/opis/container)
+[![Tests](https://github.com/opis/container/workflows/Tests/badge.svg)](https://github.com/opis/container/actions)
 [![Latest Stable Version](https://poser.pugx.org/opis/container/version.png)](https://packagist.org/packages/opis/container)
 [![Latest Unstable Version](https://poser.pugx.org/opis/container/v/unstable.png)](https://packagist.org/packages/opis/container)
 [![License](https://poser.pugx.org/opis/container/license.png)](https://packagist.org/packages/opis/container)
 
 Dependency injection container
 -------------------
-**Opis Container** is a library that provides an easy to use, fully serializable dependency injection container,
+**Opis Container** is a library that provides an easy to use dependency injection container,
 with support for PSR-11.
 
 ### Documentation
@@ -16,12 +16,11 @@ The full documentation for this library can be found [here][documentation]
 
 ### License
 
-**Opis Container** is licensed under the [Apache License, Version 2.0][apache_license]. 
+**Opis Container** is licensed under the [Apache License, Version 2.0][license]. 
 
 ### Requirements
 
-* PHP 7.0.* or higher
-* [Opis Closure] ^3.0
+* PHP ^7.4
 * [PSR Container] ^1.0
 
 ## Installation
@@ -38,14 +37,13 @@ Or you could directly reference it into your `composer.json` file as a dependenc
 ```json
 {
     "require": {
-        "opis/container": "^3.0"
+        "opis/container": "^2020"
     }
 }
 ```
 
 [documentation]: https://opis.io/container
-[apache_license]: https://www.apache.org/licenses/LICENSE-2.0 "Apache License"
+[license]: https://www.apache.org/licenses/LICENSE-2.0 "Apache License"
 [Packagist]: https://packagist.org/packages/opis/container "Packagist"
 [Composer]: https://getcomposer.org "Composer"
-[Opis Closure]: https://opis.io/closure
-[PSR Container]: https://github.com/php-fig/container
+[PSR Container]: https://github.com/php-fig/container "PSR Container"

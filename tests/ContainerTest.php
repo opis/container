@@ -17,26 +17,23 @@
 
 namespace Opis\Container\Test;
 
-use Opis\Container\Container;
+use InvalidArgumentException;
+use Opis\Container\{BindingException, Container, NotFoundException};
 use PHPUnit\Framework\TestCase;
+use function Opis\Closure\init as enableSerialization;
 
 class ContainerTest extends TestCase
 {
-    /**
-     * @var Container
-     */
-    protected $container;
+    private Container $container;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->container = new Container();
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testBindWrongConcreteType()
     {
+        $this->expectException(InvalidArgumentException::class);
         $this->container->bind('foo', 1);
     }
 
@@ -45,11 +42,9 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(Fixture\Foo::class, $this->container->make(Fixture\Foo::class));
     }
 
-    /**
-     * @expectedException \Opis\Container\BindingException
-     */
     public function testMakeWithoutBindFail()
     {
+        $this->expectException(BindingException::class);
         $this->container->make(Fixture\FooInterface::class);
     }
 
@@ -93,11 +88,9 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(Fixture\Foo::class, $this->container->make('bar'));
     }
 
-    /**
-     * @expectedException \Opis\Container\BindingException
-     */
     public function testAliasCircularException()
     {
+        $this->expectException(BindingException::class);
         $this->container->alias('foo', Fixture\Foo::class);
         $this->container->alias('bar', 'foo');
         $this->container->alias('foo', 'bar');
@@ -184,11 +177,9 @@ class ContainerTest extends TestCase
         $this->assertFalse($this->container->has(Fixture\FooInterface::class));
     }
 
-    /**
-     * @expectedException \Opis\Container\NotFoundException
-     */
     public function testPsrNotFoundException()
     {
+        $this->expectException(NotFoundException::class);
         $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
 
         $this->container->get(Fixture\FooInterface::class);
@@ -212,6 +203,8 @@ class ContainerTest extends TestCase
 
     public function testSerializeWithClosure()
     {
+        enableSerialization();
+
         $this->container->bind(Fixture\FooInterface::class, function(){
             return new Fixture\Foo();
         });

@@ -17,29 +17,27 @@
 
 namespace Opis\Container;
 
-use InvalidArgumentException;
-use Opis\Closure\SerializableClosure;
-use Psr\Container\ContainerInterface;
 use ReflectionClass;
 use ReflectionMethod;
-use Serializable;
+use InvalidArgumentException;
+use Psr\Container\ContainerInterface;
 
-class Container implements ContainerInterface, Serializable
+class Container implements ContainerInterface
 {
     /** @var Dependency[] */
-    protected $bindings = [];
+    protected array $bindings = [];
 
     /** @var array */
-    protected $instances = [];
+    protected array $instances;
 
     /** @var array */
-    protected $aliases = [];
+    protected array $aliases = [];
 
     /** @var ReflectionClass[] */
-    protected $reflectionClass = [];
+    protected array $reflectionClass = [];
 
     /** @var ReflectionMethod[] */
-    protected $reflectionMethod = [];
+    protected array $reflectionMethod = [];
 
     /**
      * @param string $abstract
@@ -268,31 +266,17 @@ class Container implements ContainerInterface, Serializable
         return $reflection->newInstanceArgs($arguments);
     }
 
-    /**
-     * @return string
-     */
-    public function serialize()
+    public function __serialize(): array
     {
-        SerializableClosure::enterContext();
-
-        $object = serialize([
+        return [
             'bindings' => $this->bindings,
             'aliases' => $this->aliases,
-        ]);
-
-        SerializableClosure::exitContext();
-
-        return $object;
+        ];
     }
 
-    /**
-     * @param string $data
-     */
-    public function unserialize($data)
+    public function __unserialize(array $data): void
     {
-        $object = unserialize($data);
-        $this->bindings = $object['bindings'];
-        $this->aliases = $object['aliases'];
+        $this->bindings = $data['bindings'];
+        $this->aliases = $data['aliases'];
     }
-
 }
