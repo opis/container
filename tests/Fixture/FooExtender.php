@@ -1,6 +1,6 @@
 <?php
 /* ===========================================================================
- * Copyright 2018 Zindex Software
+ * Copyright 2018-2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ namespace Opis\Container\Test\Fixture;
 
 class FooExtender implements FooInterface
 {
-    private $foo;
+    private FooInterface $foo;
 
     public function __construct(FooInterface $foo)
     {
@@ -31,7 +31,7 @@ class FooExtender implements FooInterface
         return strtoupper($this->foo->getValue());
     }
 
-    public function setValue(string $value)
+    public function setValue(string $value): void
     {
         $this->foo->setValue('+' . $value);
     }

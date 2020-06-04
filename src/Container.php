@@ -1,6 +1,6 @@
 <?php
 /* ===========================================================================
- * Copyright 2018 Zindex Software
+ * Copyright 2018-2020 Zindex Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ class Container implements ContainerInterface
     protected array $bindings = [];
 
     /** @var array */
-    protected array $instances;
+    protected array $instances = [];
 
     /** @var array */
     protected array $aliases = [];
@@ -85,9 +85,9 @@ class Container implements ContainerInterface
 
     /**
      * @param string $abstract
-     * @return mixed
+     * @return object
      */
-    public function make(string $abstract)
+    public function make(string $abstract): object
     {
         if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
@@ -115,7 +115,7 @@ class Container implements ContainerInterface
      * @param string $abstract
      * @return mixed
      */
-    public function __invoke(string $abstract)
+    public function __invoke(string $abstract): object
     {
         return $this->make($abstract);
     }
@@ -123,7 +123,7 @@ class Container implements ContainerInterface
     /**
      * @inheritDoc
      */
-    public function get($id)
+    public function get($id): object
     {
         if (!isset($this->aliases[$id])) {
             throw new NotFoundException();
@@ -135,7 +135,7 @@ class Container implements ContainerInterface
     /**
      * @inheritDoc
      */
-    public function has($id)
+    public function has($id): bool
     {
         return isset($this->aliases[$id]);
     }
