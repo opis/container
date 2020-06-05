@@ -63,12 +63,17 @@ class Container implements ContainerInterface
 
     /**
      * @param string $alias
-     * @param string $type
+     * @param string|null $type
      * @return $this
      */
-    public function alias(string $alias, string $type): self
+    public function alias(string $alias, ?string $type): self
     {
-        $this->aliases[$alias] = $type;
+        if ($type === null) {
+            unset($this->aliases[$alias]);
+        } else {
+            $this->aliases[$alias] = $type;
+        }
+
         return $this;
     }
 

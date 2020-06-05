@@ -81,6 +81,18 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(Fixture\Foo::class, $this->container->make('foo'));
     }
 
+    public function testAliasRemoved()
+    {
+        $this->container->alias('foo', Fixture\Foo::class);
+        $this->assertInstanceOf(Fixture\Foo::class, $this->container->make('foo'));
+
+        $this->container->alias('foo', null);
+
+        $this->expectException(BindingException::class);
+
+        $this->container->make('foo');
+    }
+
     public function testMultipleAliases()
     {
         $this->container->alias('foo', Fixture\Foo::class);
