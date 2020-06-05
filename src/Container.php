@@ -19,6 +19,7 @@ namespace Opis\Container;
 
 use ReflectionClass;
 use ReflectionMethod;
+use ReflectionException;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 
@@ -27,10 +28,10 @@ class Container implements ContainerInterface
     /** @var Dependency[] */
     protected array $bindings = [];
 
-    /** @var array */
+    /** @var object[] */
     protected array $instances = [];
 
-    /** @var array */
+    /** @var string[] */
     protected array $aliases = [];
 
     /** @var ReflectionClass[] */
@@ -43,7 +44,7 @@ class Container implements ContainerInterface
      * @param string $abstract
      * @param null|string|callable $concrete
      * @param array $arguments
-     * @return Container
+     * @return $this
      */
     public function singleton(string $abstract, $concrete = null, array $arguments = []): self
     {
@@ -54,11 +55,26 @@ class Container implements ContainerInterface
      * @param string $abstract
      * @param null|string|callable $concrete
      * @param array $arguments
-     * @return Container
+     * @return $this
      */
     public function bind(string $abstract, $concrete = null, array $arguments = []): self
     {
         return $this->bindDependency($abstract, $concrete, $arguments, false);
+    }
+
+    /**
+     * @param string $abstract
+     * @return $this
+     */
+    public function unbind(string $abstract): self
+    {
+        unset(
+            $this->instances[$abstract],
+            $this->aliases[$abstract],
+            $this->bindings[$abstract],
+        );
+
+        return $this;
     }
 
     /**
@@ -208,7 +224,7 @@ class Container implements ContainerInterface
      * @param array $arguments
      * @return object
      */
-    protected function build($concrete, array $arguments = [])
+    protected function build($concrete, array $arguments = []): object
     {
         if (is_callable($concrete)) {
             return $concrete($this, $arguments);
@@ -219,8 +235,8 @@ class Container implements ContainerInterface
         } else {
             try {
                 $reflection = $this->reflectionClass[$concrete] = new ReflectionClass($concrete);
-            } catch (\ReflectionException $e) {
-                throw new BindingException('ReflectionException: ' . $e->getMessage());
+            } catch (ReflectionException $e) {
+                throw new NotFoundException($e->getMessage(), 0, $e);
             }
         }
 

@@ -75,6 +75,15 @@ class ContainerTest extends TestCase
         $this->assertSame($obj1, $obj2);
     }
 
+    public function testUnbind()
+    {
+        $this->container->singleton(Fixture\FooInterface::class, Fixture\Foo::class);
+        $this->assertInstanceOf(Fixture\Foo::class, $this->container->make(Fixture\FooInterface::class));
+        $this->container->unbind(Fixture\FooInterface::class);
+        $this->expectException(BindingException::class);
+        $this->container->make(Fixture\FooInterface::class);
+    }
+
     public function testAlias()
     {
         $this->container->alias('foo', Fixture\Foo::class);
@@ -88,7 +97,7 @@ class ContainerTest extends TestCase
 
         $this->container->alias('foo', null);
 
-        $this->expectException(BindingException::class);
+        $this->expectException(NotFoundException::class);
 
         $this->container->make('foo');
     }
