@@ -19,8 +19,8 @@ namespace Opis\Container\Test;
 
 use InvalidArgumentException;
 use Opis\Container\{BindingException, Container, NotFoundException};
+use Opis\Closure\SerializableClosure;
 use PHPUnit\Framework\TestCase;
-use function Opis\Closure\init as enableSerialization;
 
 class ContainerTest extends TestCase
 {
@@ -224,9 +224,9 @@ class ContainerTest extends TestCase
 
     public function testSerializeWithClosure()
     {
-        enableSerialization();
+        SerializableClosure::init();
 
-        $this->container->bind(Fixture\FooInterface::class, function(){
+        $this->container->bind(Fixture\FooInterface::class, static function(){
             return new Fixture\Foo();
         });
         $container = unserialize(serialize($this->container));

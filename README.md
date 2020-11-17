@@ -20,7 +20,7 @@ The full documentation for this library can be found [here][documentation]
 
 ### Requirements
 
-* PHP ^7.4
+* PHP ^7.4|^8.0
 * [PSR Container] ^1.0
 
 ## Installation
