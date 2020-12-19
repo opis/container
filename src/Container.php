@@ -20,11 +20,16 @@ namespace Opis\Container;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionException;
+use ReflectionParameter;
+use ReflectionNamedType;
+use ReflectionUnionType;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 
 class Container implements ContainerInterface
 {
+    protected const TYPES = ['bool', 'int', 'float', 'string', 'callable', 'array', 'object', 'self', 'mixed'];
+
     /** @var Dependency[] */
     protected array $bindings = [];
 
@@ -46,7 +51,7 @@ class Container implements ContainerInterface
      * @param array $arguments
      * @return $this
      */
-    public function singleton(string $abstract, $concrete = null, array $arguments = []): self
+    public function singleton(string $abstract, string|callable|null $concrete = null, array $arguments = []): self
     {
         return $this->bindDependency($abstract, $concrete, $arguments, true);
     }
@@ -57,7 +62,7 @@ class Container implements ContainerInterface
      * @param array $arguments
      * @return $this
      */
-    public function bind(string $abstract, $concrete = null, array $arguments = []): self
+    public function bind(string $abstract, string|callable|null $concrete = null, array $arguments = []): self
     {
         return $this->bindDependency($abstract, $concrete, $arguments, false);
     }
@@ -79,7 +84,7 @@ class Container implements ContainerInterface
 
     /**
      * @param string $alias
-     * @param string|null $type
+     * @param string|null $type Use null to remove alias
      * @return $this
      */
     public function alias(string $alias, ?string $type): self
@@ -168,7 +173,7 @@ class Container implements ContainerInterface
      * @param bool $shared
      * @return Container
      */
-    protected function bindDependency(string $abstract, $concrete, array $arguments, bool $shared): self
+    protected function bindDependency(string $abstract, string|callable|null $concrete, array $arguments, bool $shared): self
     {
         if (is_null($concrete)) {
             $concrete = $abstract;
@@ -224,7 +229,7 @@ class Container implements ContainerInterface
      * @param array $arguments
      * @return object
      */
-    protected function build($concrete, array $arguments = []): object
+    protected function build(string|callable $concrete, array $arguments = []): object
     {
         if (is_callable($concrete)) {
             return $concrete($this, $arguments);
@@ -259,27 +264,60 @@ class Container implements ContainerInterface
 
         /**
          * @var int $key
-         * @var  \ReflectionParameter $parameter
+         * @var ReflectionParameter $parameter
          */
         foreach ($parameters as $key => $parameter) {
-            if (null === $class = $parameter->getClass()) {
-                if ($parameter->isDefaultValueAvailable()) {
-                    $arguments[$key] = $parameter->getDefaultValue();
-                } else {
-                    throw new BindingException("Could not resolve [$parameter]");
+            $type = $parameter->getType();
+
+            if ($type instanceof ReflectionNamedType) {
+                $class = $type->getName();
+
+                if (in_array($class, self::TYPES)) {
+                    if ($parameter->isDefaultValueAvailable()) {
+                        $arguments[$key] = $parameter->getDefaultValue();
+                        continue;
+                    }
+
+                    if ($parameter->allowsNull()) {
+                        $arguments[$key] = null;
+                        continue;
+                    }
+
+                    throw new BindingException("Could not resolve [$parameter] for building $concrete");
                 }
+
+                try {
+                    $arguments[$key] = isset($this->bindings[$class])
+                        ? $this->make($class)
+                        : $this->build($class);
+                } catch (BindingException $e) {
+                    if ($parameter->isDefaultValueAvailable()) {
+                        $arguments[$key] = $parameter->getDefaultValue();
+                        continue;
+                    }
+
+                    if ($parameter->allowsNull()) {
+                        $arguments[$key] = null;
+                        continue;
+                    }
+
+                    throw $e;
+                }
+
                 continue;
             }
 
-            try {
-                $class = $class->name;
-                $arguments[$key] = isset($this->bindings[$class]) ? $this->make($class) : $this->build($class);
-            } catch (BindingException $e) {
-                if (!$parameter->isOptional()) {
-                    throw $e;
-                }
+            if ($parameter->isDefaultValueAvailable()) {
                 $arguments[$key] = $parameter->getDefaultValue();
+                continue;
             }
+
+            if (($type instanceof ReflectionUnionType) && $parameter->allowsNull()) {
+                $arguments[$key] = null;
+                continue;
+            }
+
+            throw new BindingException("Could not resolve [$parameter] for building $concrete");
         }
 
         ksort($arguments);

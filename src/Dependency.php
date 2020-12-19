@@ -37,7 +37,7 @@ class Dependency
      * @param array $arguments
      * @param bool $shared
      */
-    public function __construct($concrete, array $arguments, bool $shared)
+    public function __construct(string|callable $concrete, array $arguments, bool $shared)
     {
         $this->concrete = $concrete;
         $this->arguments = $arguments;
@@ -47,7 +47,7 @@ class Dependency
     /**
      * @return string|callable
      */
-    public function getConcrete()
+    public function getConcrete(): string|callable
     {
         return $this->concrete;
     }

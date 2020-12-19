@@ -31,12 +31,6 @@ class ContainerTest extends TestCase
         $this->container = new Container();
     }
 
-    public function testBindWrongConcreteType()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->container->bind('foo', 1);
-    }
-
     public function testMakeWithoutBind()
     {
         $this->assertInstanceOf(Fixture\Foo::class, $this->container->make(Fixture\Foo::class));
@@ -126,8 +120,7 @@ class ContainerTest extends TestCase
 
     public function testDIArguments()
     {
-        $this->container
-            ->bind(Fixture\FooInterface::class, Fixture\Foo::class);
+        $this->container->bind(Fixture\FooInterface::class, Fixture\Foo::class);
         $this->container->bind(Fixture\Bar2::class, null, [1 => 2]);
         $this->assertInstanceOf(Fixture\Bar2::class, $this->container->make(Fixture\Bar2::class));
     }
